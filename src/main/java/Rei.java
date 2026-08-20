@@ -1,16 +1,18 @@
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 
+/** Runs Rei command-line interface. */
 public class Rei {
     private static final String DIVIDER = "------------------------------------------------------------";
 
     public static void main(String[] args) {
         printGreeting();
         Scanner scanner = new Scanner(System.in);
-        Task[] tasks = new Task[100];
-        int taskCount = 0;
+        List<Task> tasks = new ArrayList<>();
 
         while (scanner.hasNextLine()) {
             String userInput = scanner.nextLine().trim();
@@ -31,20 +33,26 @@ public class Rei {
                 }
                 if (command.equals("list")) {
                     ensureNoDetails(command, details);
-                    printTasks(tasks, taskCount);
+                    printTasks(tasks);
+                    System.out.println(DIVIDER);
+                    continue;
+                }
+                if (command.equals("delete")) {
+                    Task deletedTask = deleteTask(details, tasks);
+                    System.out.println("Gotcha, I will remove this task from your list:");
+                    System.out.println("  [" + deletedTask.getTaskType() + "]"
+                            + "[" + deletedTask.getStatusIcon() + "] " + deletedTask);
+                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
                     System.out.println(DIVIDER);
                     continue;
                 }
 
-                Task newTask = processCommand(command, details, tasks, taskCount);
+                Task newTask = processCommand(command, details, tasks);
                 if (newTask != null) {
-                    if (taskCount == tasks.length) {
-                        throw new ReiException("Your task list is full. Remove a task before adding another one.");
-                    }
-                    tasks[taskCount++] = newTask;
+                    tasks.add(newTask);
                     System.out.println("Okay, I've added: [" + newTask.getTaskType() + "]"
                             + "[" + newTask.getStatusIcon() + "] " + newTask);
-                    System.out.println("You have a total of " + taskCount + " tasks in the list.");
+                    System.out.println("You have a total of " + tasks.size() + " tasks in the list.");
                 }
             } catch (ReiException exception) {
                 printError(exception.getMessage());
@@ -73,23 +81,23 @@ public class Rei {
         System.out.println("How can I help you today?");
         System.out.println(DIVIDER);
     }
-
-    private static Task processCommand(String command, String details, Task[] tasks, int taskCount)
+    /** Process the command that is given by user. */
+    private static Task processCommand(String command, String details, List<Task> tasks)
             throws ReiException {
         return switch (command) {
         case "todo" -> createTodo(details);
         case "deadline" -> createDeadline(details);
         case "event" -> createEvent(details);
         case "mark" -> {
-            updateTaskStatus(details, tasks, taskCount, true);
+            updateTaskStatus(details, tasks, true);
             yield null;
         }
         case "unmark" -> {
-            updateTaskStatus(details, tasks, taskCount, false);
+            updateTaskStatus(details, tasks, false);
             yield null;
         }
         default -> throw new ReiException("I'm sorry, I don't know what is '" + command
-                + "'. Try todo, deadline, event, list, mark, unmark, or bye.");
+                + "'. Try todo, deadline, event, list, delete, mark, unmark, or bye.");
         };
     }
 
@@ -103,63 +111,77 @@ public class Rei {
 
     /** Creates a deadline task */
     private static Task createDeadline(String details) throws ReiException {
-        int byIndex = details.indexOf("/by");
-        if (byIndex <= 0 || details.substring(0, byIndex).trim().isEmpty()
-                || details.substring(byIndex + 3).trim().isEmpty()) {
+        String[] deadlineParts = details.split("\\s+/by\\s+", -1);
+        if (deadlineParts.length != 2 || deadlineParts[0].isEmpty() || deadlineParts[1].isEmpty()) {
             throw new ReiException("A deadline needs a description and a by date. "
                     + "\nTry: deadline {your task} /by {deadline}");
         }
-        return new Deadlines(details.substring(0, byIndex).trim(), details.substring(byIndex + 3).trim());
+        return new Deadlines(deadlineParts[0], deadlineParts[1]);
     }
 
     /** Creates an event task*/
     private static Task createEvent(String details) throws ReiException {
-        int fromIndex = details.indexOf("/from");
-        int toIndex = details.indexOf("/to");
-        if (fromIndex <= 0 || toIndex <= fromIndex
-                || details.substring(0, fromIndex).trim().isEmpty()
-                || details.substring(fromIndex + 5, toIndex).trim().isEmpty()
-                || details.substring(toIndex + 3).trim().isEmpty()) {
+        String[] eventParts = details.split("\\s+/from\\s+", -1);
+        if (eventParts.length != 2) {
             throw new ReiException("An event needs a description, start, and end time. "
                     + "\nTry: event {task} /from {start} /to {end}");
         }
-        return new Events(details.substring(0, fromIndex).trim(),
-                details.substring(fromIndex + 5, toIndex).trim(), details.substring(toIndex + 3).trim());
+        String[] timeParts = eventParts[1].split("\\s+/to\\s+", -1);
+        if (eventParts[0].isEmpty() || timeParts.length != 2
+                || timeParts[0].isEmpty() || timeParts[1].isEmpty()) {
+            throw new ReiException("An event needs a description, start, and end time. "
+                    + "\nTry: event {task} /from {start} /to {end}");
+        }
+        return new Events(eventParts[0], timeParts[0], timeParts[1]);
     }
 
     /** Updates a task's completion status*/
-    private static void updateTaskStatus(String details, Task[] tasks, int taskCount, boolean isDone)
+    private static void updateTaskStatus(String details, List<Task> tasks, boolean isDone)
             throws ReiException {
         String command = isDone ? "mark" : "unmark";
         if (details.isEmpty()) {
-            throw new ReiException("Please provide a task number! Try: " + command + " {task no.}read");
+            throw new ReiException("Please provide a task number! Try: " + command + " {task no.}");
         }
         if (!details.matches("\\d+")) {
             throw new ReiException("The task number must be a whole number! Try: " + command + " {task no.}");
         }
-        int taskIndex = getTaskIndex(details, taskCount, command);
+        int taskIndex = getTaskIndex(details, tasks.size(), command);
         if (isDone) {
-            tasks[taskIndex].markAsDone();
+            tasks.get(taskIndex).markAsDone();
             System.out.println("Alright! I have set it to done! Good Work!\n");
         } else {
-            tasks[taskIndex].markAsUndone();
+            tasks.get(taskIndex).markAsUndone();
             System.out.println("Got it! I have set it to not done!\n");
         }
-        System.out.println("[" + tasks[taskIndex].getTaskType() + "]"
-                + "[" + tasks[taskIndex].getStatusIcon() + "] " + tasks[taskIndex].getDescription());
+        Task task = tasks.get(taskIndex);
+        System.out.println("[" + task.getTaskType() + "]"
+                + "[" + task.getStatusIcon() + "] " + task.getDescription());
     }
 
-    /** Prints all stored tasks*/
-    private static void printTasks(Task[] tasks, int taskCount) {
-        if (taskCount == 0) {
+    /** Prints all stored tasks in their current list order. */
+    private static void printTasks(List<Task> tasks) {
+        if (tasks.isEmpty()) {
             System.out.println("Yay! You have completed all your tasks");
             return;
         }
-        for (int i = 0; i < taskCount; i++) {
-            Task task = tasks[i];
-            System.out.println("[" + task.getTaskType() + "]"
+        System.out.println("Here are the tasks in your list:");
+        System.out.println("No. of tasks: " + tasks.size());
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            System.out.println((i + 1) + ".[" + task.getTaskType() + "]"
                     + "[" + task.getStatusIcon() + "] " + task);
         }
+    }
+
+    /** Removes the requested task and keeps the remaining task indexes contiguous. */
+    private static Task deleteTask(String details, List<Task> tasks) throws ReiException {
+        if (details.isEmpty()) {
+            throw new ReiException("Please provide a task number. Try: delete 1");
+        } else if (!details.matches("\\d+")) {
+            throw new ReiException("The task number must be a whole number. Try: delete 1");
+        }
+        int taskIndex = getTaskIndex(details, tasks.size(), "delete");
+        return tasks.remove(taskIndex);
     }
 
     /** Rejects a command that has unexpected extra text. */
@@ -178,8 +200,7 @@ public class Rei {
                         "Let's try that again!");
             }
             if (taskNumber > taskCount) {
-                throw new ReiException("Task " + taskNumber + " does not exist. Try a number from 1 to "
-                        + taskCount + ".\nLet's try that again!");
+                throw new ReiException("Task " + taskNumber + " does not exist.\nLet's try that again!");
             }
             return taskNumber - 1;
         } catch (NumberFormatException exception) {
