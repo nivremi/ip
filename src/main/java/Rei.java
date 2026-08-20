@@ -10,10 +10,11 @@ public class Rei {
     private static final String DIVIDER = "------------------------------------------------------------";
 
     /**
-     * Greets the user, echoes each entered command, and exits on {@code bye}.
+     * Greets the user, stores tasks in memory, and exits on {@code bye}.
      *
      * @param args command-line arguments, which are not used
      */
+
     public static void main(String[] args) {
         ZonedDateTime now = ZonedDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm a z", Locale.ENGLISH);
@@ -34,6 +35,8 @@ public class Rei {
         System.out.println(DIVIDER);
 
         Scanner scanner = new Scanner(System.in);
+        String[] tasks = new String[100];
+        int taskCount = 0;
         while (true) {
             String command = scanner.nextLine();
             System.out.println(DIVIDER);
@@ -44,7 +47,15 @@ public class Rei {
                 break;
             }
 
-            System.out.println(" " + command);
+            if (command.equals("list")) {
+                for (int i = 0; i < taskCount; i++) {
+                    System.out.println(" " + (i + 1) + ". " + tasks[i]);
+                }
+            } else {
+                tasks[taskCount] = command;
+                taskCount++;
+                System.out.println(" added: " + command);
+            }
             System.out.println(DIVIDER);
         }
     }
