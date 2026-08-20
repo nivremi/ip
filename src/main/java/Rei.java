@@ -4,7 +4,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 /**
- * Runs Rei's command-line interface.
+ * Runs Rei command-line interface.
  */
 public class Rei {
     private static final String DIVIDER = "------------------------------------------------------------";
@@ -20,7 +20,8 @@ public class Rei {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm a z", Locale.ENGLISH);
         String formattedDateTime = now.format(formatter);
 
-        String banner = "\n██████╗ ███████╗██╗\n" +
+        String banner = "\n" +
+                "██████╗ ███████╗██╗\n" +
                 "██╔══██╗██╔════╝██║\n" +
                 "██████╔╝█████╗  ██║\n" +
                 "██╔══██╗██╔══╝  ██║\n" +
@@ -35,10 +36,11 @@ public class Rei {
         System.out.println(DIVIDER);
 
         Scanner scanner = new Scanner(System.in);
-        String[] tasks = new String[100];
+        Task[] tasks = new Task[100];
         int taskCount = 0;
         while (true) {
             String command = scanner.nextLine();
+            String keyword = command.split(" ")[0];
             System.out.println(DIVIDER);
 
             if (command.equals("bye")) {
@@ -49,10 +51,25 @@ public class Rei {
 
             if (command.equals("list")) {
                 for (int i = 0; i < taskCount; i++) {
-                    System.out.println(" " + (i + 1) + ". " + tasks[i]);
+                    Task currTask = tasks[i];
+                    System.out.println("[" + currTask.getStatusIcon() + "]" + currTask.getDescription());
                 }
-            } else {
-                tasks[taskCount] = command;
+            }
+            else if (keyword.equals("mark")) {
+                int taskNo = Integer.parseInt(command.split(" ")[1]) - 1;
+                tasks[taskNo].markAsDone();
+                System.out.println("Alright! I have set it to done!:\n");
+                System.out.println("[" + tasks[taskNo].getStatusIcon() + "]" + tasks[taskNo].getDescription());
+            }
+            else if (keyword.equals("unmark")) {
+                int taskNo = Integer.parseInt(command.split(" ")[1]) - 1;
+                tasks[taskNo].markAsUndone();
+                System.out.println("Got it! I have set it to not done!:\n");
+                System.out.println("[" + tasks[taskNo].getStatusIcon() + "]" + tasks[taskNo].getDescription());
+            }
+            else {
+                Task newTask = new Task(command);
+                tasks[taskCount] = newTask;
                 taskCount++;
                 System.out.println(" added: " + command);
             }
