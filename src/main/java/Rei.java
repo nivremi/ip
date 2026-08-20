@@ -22,22 +22,27 @@ public class Rei {
             }
 
             int firstSpace = userInput.indexOf(" ");
-            String command = firstSpace == -1 ? userInput : userInput.substring(0, firstSpace);
+            String commandText = firstSpace == -1 ? userInput : userInput.substring(0, firstSpace);
             String details = firstSpace == -1 ? "" : userInput.substring(firstSpace).trim();
+            Command command = Command.fromText(commandText);
             try {
-                if (command.equals("bye")) {
+                if (command == null) {
+                    throw new ReiException("I'm sorry, I don't know what is '" + commandText
+                            + "'. Try todo, deadline, event, list, delete, mark, unmark, or bye.");
+                }
+                if (command == Command.BYE) {
                     ensureNoDetails(command, details);
                     System.out.println("Bye! Hope to see you again soon!");
                     System.out.println(DIVIDER);
                     break;
                 }
-                if (command.equals("list")) {
+                if (command == Command.LIST) {
                     ensureNoDetails(command, details);
                     printTasks(tasks);
                     System.out.println(DIVIDER);
                     continue;
                 }
-                if (command.equals("delete")) {
+                if (command == Command.DELETE) {
                     Task deletedTask = deleteTask(details, tasks);
                     System.out.println("Gotcha, I will remove this task from your list:");
                     System.out.println("  [" + deletedTask.getTaskType() + "]"
@@ -82,22 +87,21 @@ public class Rei {
         System.out.println(DIVIDER);
     }
     /** Process the command that is given by user. */
-    private static Task processCommand(String command, String details, List<Task> tasks)
+    private static Task processCommand(Command command, String details, List<Task> tasks)
             throws ReiException {
         return switch (command) {
-        case "todo" -> createTodo(details);
-        case "deadline" -> createDeadline(details);
-        case "event" -> createEvent(details);
-        case "mark" -> {
+        case TODO -> createTodo(details);
+        case DEADLINE -> createDeadline(details);
+        case EVENT -> createEvent(details);
+        case MARK -> {
             updateTaskStatus(details, tasks, true);
             yield null;
         }
-        case "unmark" -> {
+        case UNMARK -> {
             updateTaskStatus(details, tasks, false);
             yield null;
         }
-        default -> throw new ReiException("I'm sorry, I don't know what is '" + command
-                + "'. Try todo, deadline, event, list, delete, mark, unmark, or bye.");
+        case LIST, DELETE, BYE -> throw new IllegalStateException("Command already handled: " + command);
         };
     }
 
@@ -138,14 +142,15 @@ public class Rei {
     /** Updates a task's completion status*/
     private static void updateTaskStatus(String details, List<Task> tasks, boolean isDone)
             throws ReiException {
-        String command = isDone ? "mark" : "unmark";
+        Command command = isDone ? Command.MARK : Command.UNMARK;
         if (details.isEmpty()) {
-            throw new ReiException("Please provide a task number! Try: " + command + " {task no.}");
+            throw new ReiException("Please provide a task number! Try: " + command.getKeyword() + " {task no.}");
         }
         if (!details.matches("\\d+")) {
-            throw new ReiException("The task number must be a whole number! Try: " + command + " {task no.}");
+            throw new ReiException("The task number must be a whole number! Try: "
+                    + command.getKeyword() + " {task no.}");
         }
-        int taskIndex = getTaskIndex(details, tasks.size(), command);
+        int taskIndex = getTaskIndex(details, tasks.size(), command.getKeyword());
         if (isDone) {
             tasks.get(taskIndex).markAsDone();
             System.out.println("Alright! I have set it to done! Good Work!\n");
@@ -185,9 +190,10 @@ public class Rei {
     }
 
     /** Rejects a command that has unexpected extra text. */
-    private static void ensureNoDetails(String command, String details) throws ReiException {
+    private static void ensureNoDetails(Command command, String details) throws ReiException {
         if (!details.isEmpty()) {
-            throw new ReiException("The " + command + " command does not take any extra text. Try: " + command);
+            throw new ReiException("The " + command.getKeyword()
+                    + " command does not take any extra text. Try: " + command.getKeyword());
         }
     }
 

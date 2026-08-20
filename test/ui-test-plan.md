@@ -33,6 +33,7 @@ Okay, I've added: [T][ ] return book
 You have a total of 2 tasks in the list.
 ------------------------------------------------------------
 Here are the tasks in your list:
+No. of tasks: 2
 1.[T][ ] read book
 2.[T][ ] return book
 ------------------------------------------------------------
@@ -92,6 +93,7 @@ Alright! I have set it to done! Good Work!
 [T][X] alpha
 ------------------------------------------------------------
 Here are the tasks in your list:
+No. of tasks: 1
 1.[T][X] alpha
 ------------------------------------------------------------
 Gotcha, I will remove this task from your list:
@@ -114,6 +116,7 @@ Got it! I have set it to not done!
 Try a number from 1 to 1!
 ------------------------------------------------------------
 Here are the tasks in your list:
+No. of tasks: 1
 1.[T][ ] beta
 ------------------------------------------------------------
 Bye! Hope to see you again soon!
@@ -143,6 +146,7 @@ You have a total of 1 tasks in the list.
 I'm sorry, I don't know what is 'TODO'. Try todo, deadline, event, list, delete, mark, unmark, or bye.
 ------------------------------------------------------------
 Here are the tasks in your list:
+No. of tasks: 1
 1.[T][ ] spaced task
 ------------------------------------------------------------
 Bye! Hope to see you again soon!
@@ -219,6 +223,7 @@ Gotcha, I will remove this task from your list:
 Now you have 3 tasks in the list.
 ------------------------------------------------------------
 Here are the tasks in your list:
+No. of tasks: 3
 1.[T][ ] read book
 2.[D][ ] return book (by: Friday)
 3.[T][ ] borrow book
@@ -228,6 +233,7 @@ Gotcha, I will remove this task from your list:
 Now you have 2 tasks in the list.
 ------------------------------------------------------------
 Here are the tasks in your list:
+No. of tasks: 2
 1.[T][ ] read book
 2.[D][ ] return book (by: Friday)
 ------------------------------------------------------------
@@ -270,6 +276,7 @@ A todo needs a description.
 Try: todo {your task}
 ------------------------------------------------------------
 Here are the tasks in your list:
+No. of tasks: 1
 1.[T][ ] alpha
 ------------------------------------------------------------
 Alright! I have set it to done! Good Work!
@@ -280,6 +287,7 @@ Task 3 does not exist.
 Let's try that again!
 ------------------------------------------------------------
 Here are the tasks in your list:
+No. of tasks: 1
 1.[T][X] alpha
 ------------------------------------------------------------
 Got it! I have set it to not done!
@@ -290,6 +298,7 @@ The task number must be at least 1. Try: mark 1
 Let's try that again!
 ------------------------------------------------------------
 Here are the tasks in your list:
+No. of tasks: 1
 1.[T][ ] alpha
 ------------------------------------------------------------
 Bye! Hope to see you again soon!
@@ -332,6 +341,7 @@ A deadline needs a description and a by date.
 Try: deadline {your task} /by {deadline}
 ------------------------------------------------------------
 Here are the tasks in your list:
+No. of tasks: 2
 1.[D][ ] return book (by: Friday)
 2.[E][ ] meeting (from: Monday to: Tuesday)
 ------------------------------------------------------------

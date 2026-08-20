@@ -2,9 +2,8 @@ public class Deadlines extends Task {
     public String by;
 
     public Deadlines(String description, String by) {
-        super(description);
+        super(description, TaskType.DEADLINE);
         this.by = by;
-        this.taskType = "D";
     }
 
     public String getBy() {

@@ -1,12 +1,22 @@
 public class Task {
     protected boolean isDone;
     protected String description;
-    protected String taskType;
+    protected TaskType taskType;
 
     public Task(String description) {
+        this(description, TaskType.TODO);
+    }
+
+    /**
+     * Creates a task with the specified type.
+     *
+     * @param description task description
+     * @param taskType category of the task
+     */
+    protected Task(String description, TaskType taskType) {
         this.description = description;
         this.isDone = false;
-        this.taskType = "T";
+        this.taskType = taskType;
     }
 
     public String getStatusIcon() {
@@ -17,7 +27,7 @@ public class Task {
     }
 
     public String getTaskType() {
-        return this.taskType;
+        return this.taskType.getDisplayCode();
     }
 
     public void markAsDone() {
