@@ -3,10 +3,11 @@
 ## Program command
 
 ```text
-java -cp build Rei
+java -cp build UiTestLauncher
 ```
 
 The command assumes the project has been compiled into `build` with Java 25.
+The test launcher removes the test data before each case so cases remain independent.
 
 ## Test case: Add tasks and list them
 

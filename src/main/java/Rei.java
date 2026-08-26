@@ -1,3 +1,5 @@
+import java.io.IOException;
+import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -8,11 +10,14 @@ import java.util.Scanner;
 /** Runs Rei command-line interface. */
 public class Rei {
     private static final String DIVIDER = "------------------------------------------------------------";
+    private static final Path DATA_FILE = Path.of(System.getProperty(
+            "rei.data.file", Path.of("data", "rei.txt").toString()));
 
     public static void main(String[] args) {
         printGreeting();
         Scanner scanner = new Scanner(System.in);
-        List<Task> tasks = new ArrayList<>();
+        Storage storage = new Storage(DATA_FILE);
+        List<Task> tasks = loadTasks(storage);
 
         while (scanner.hasNextLine()) {
             String userInput = scanner.nextLine().trim();
@@ -44,6 +49,7 @@ public class Rei {
                 }
                 if (command == Command.DELETE) {
                     Task deletedTask = deleteTask(details, tasks);
+                    saveTasks(storage, tasks);
                     System.out.println("Gotcha, I will remove this task from your list:");
                     System.out.println("  [" + deletedTask.getTaskType() + "]"
                             + "[" + deletedTask.getStatusIcon() + "] " + deletedTask);
@@ -55,9 +61,12 @@ public class Rei {
                 Task newTask = processCommand(command, details, tasks);
                 if (newTask != null) {
                     tasks.add(newTask);
+                    saveTasks(storage, tasks);
                     System.out.println("Okay, I've added: [" + newTask.getTaskType() + "]"
                             + "[" + newTask.getStatusIcon() + "] " + newTask);
                     System.out.println("You have a total of " + tasks.size() + " tasks in the list.");
+                } else if (command == Command.MARK || command == Command.UNMARK) {
+                    saveTasks(storage, tasks);
                 }
             } catch (ReiException exception) {
                 printError(exception.getMessage());
@@ -66,6 +75,32 @@ public class Rei {
             System.out.println(DIVIDER);
         }
         scanner.close();
+    }
+
+    /** Loads saved tasks while keeping startup usable if the file cannot be read. */
+    private static List<Task> loadTasks(Storage storage) {
+        try {
+            Storage.LoadResult result = storage.load();
+            if (result.skippedLines() > 0) {
+                System.out.println("Warning: I skipped " + result.skippedLines()
+                        + " invalid line(s) in the data file.");
+                System.out.println(DIVIDER);
+            }
+            return result.tasks();
+        } catch (IOException exception) {
+            System.out.println("Warning: I could not read the data file. Starting with an empty list.");
+            System.out.println(DIVIDER);
+            return new ArrayList<>();
+        }
+    }
+
+    /** Saves tasks immediately after a successful list-changing command. */
+    private static void saveTasks(Storage storage, List<Task> tasks) throws ReiException {
+        try {
+            storage.save(tasks);
+        } catch (IOException exception) {
+            throw new ReiException("I couldn't save your tasks. Please check that the data folder is writable.");
+        }
     }
 
     /** Prints welcome message. */

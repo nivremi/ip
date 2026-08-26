@@ -30,6 +30,11 @@ public class Task {
         return this.taskType.getDisplayCode();
     }
 
+    /** Returns whether this task has been completed. */
+    public boolean isDone() {
+        return isDone;
+    }
+
     public void markAsDone() {
         this.isDone = true;
     }
