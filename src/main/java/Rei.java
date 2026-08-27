@@ -2,18 +2,15 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Scanner;
 
-/** Runs Rei command-line interface. */
+/** Coordinates Rei command processing, task management, storage, and UI. */
 public class Rei {
-    private static final String DIVIDER = "------------------------------------------------------------";
     private static final Path DATA_FILE = Path.of(System.getProperty(
             "rei.data.file", Path.of("data", "rei.txt").toString()));
     private static final List<DateTimeFormatter> INPUT_DATE_FORMATS = List.of(
@@ -36,15 +33,15 @@ public class Rei {
                     .withResolverStyle(ResolverStyle.STRICT));
 
     public static void main(String[] args) {
-        printGreeting();
-        Scanner scanner = new Scanner(System.in);
+        Ui ui = new Ui();
+        ui.showGreeting();
         Storage storage = new Storage(DATA_FILE);
-        List<Task> tasks = loadTasks(storage);
+        List<Task> tasks = loadTasks(storage, ui);
 
-        while (scanner.hasNextLine()) {
-            String userInput = scanner.nextLine().trim();
+        while (ui.hasNextCommand()) {
+            String userInput = ui.readCommand();
             if (userInput.isEmpty()) {
-                printError("Please enter a command. Try: todo read book");
+                ui.showError("Please enter a command. Try: todo read book");
                 continue;
             }
 
@@ -63,64 +60,55 @@ public class Rei {
                 }
                 if (command == Command.BYE) {
                     ensureNoDetails(command, details);
-                    System.out.println("Bye! Hope to see you again soon!");
-                    System.out.println(DIVIDER);
+                    ui.showExit();
                     break;
                 }
                 if (command == Command.LIST) {
                     ensureNoDetails(command, details);
-                    printTasks(tasks);
-                    System.out.println(DIVIDER);
+                    ui.showTasks(tasks);
+                    ui.divider();
                     continue;
                 }
                 if (command == Command.FIND) {
-                    printTasksOnDate(details, tasks);
-                    System.out.println(DIVIDER);
+                    printTasksOnDate(details, tasks, ui);
+                    ui.divider();
                     continue;
                 }
                 if (command == Command.DELETE) {
                     Task deletedTask = deleteTask(details, tasks);
                     saveTasks(storage, tasks);
-                    System.out.println("Gotcha, I will remove this task from your list:");
-                    System.out.println("  [" + deletedTask.getTaskType() + "]"
-                            + "[" + deletedTask.getStatusIcon() + "] " + deletedTask);
-                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                    System.out.println(DIVIDER);
+                    ui.showTaskDeleted(deletedTask, tasks.size());
+                    ui.divider();
                     continue;
                 }
 
-                Task newTask = processCommand(command, details, tasks);
+                Task newTask = processCommand(command, details, tasks, ui);
                 if (newTask != null) {
                     tasks.add(newTask);
                     saveTasks(storage, tasks);
-                    System.out.println("Okay, I've added: [" + newTask.getTaskType() + "]"
-                            + "[" + newTask.getStatusIcon() + "] " + newTask);
-                    System.out.println("You have a total of " + tasks.size() + " tasks in the list.");
+                    ui.showTaskAdded(newTask, tasks.size());
                 } else if (command == Command.MARK || command == Command.UNMARK) {
                     saveTasks(storage, tasks);
                 }
             } catch (ReiException exception) {
-                printError(exception.getMessage());
+                ui.showError(exception.getMessage());
                 continue;
             }
-            System.out.println(DIVIDER);
+            ui.divider();
         }
-        scanner.close();
+        ui.close();
     }
 
     /** Loads saved tasks while keeping startup usable if the file cannot be read. */
-    private static List<Task> loadTasks(Storage storage) {
+    private static List<Task> loadTasks(Storage storage, Ui ui) {
         try {
             Storage.LoadResult result = storage.load();
             if (result.skippedLines() > 0) {
-                System.out.println("Warning: I skipped " + result.skippedLines()
-                        + " invalid line(s) in the data file.");
-                System.out.println(DIVIDER);
+                ui.showSkippedTasksWarning(result.skippedLines());
             }
             return result.tasks();
         } catch (IOException exception) {
-            System.out.println("Warning: I could not read the data file. Starting with an empty list.");
-            System.out.println(DIVIDER);
+            ui.showLoadingError();
             return new ArrayList<>();
         }
     }
@@ -134,37 +122,19 @@ public class Rei {
         }
     }
 
-    /** Prints welcome message. */
-    private static void printGreeting() {
-        String banner = "" +
-                "\n██████╗ ███████╗██╗\n"
-                + "██╔══██╗██╔════╝██║\n"
-                + "██████╔╝█████╗  ██║\n"
-                + "██╔══██╗██╔══╝  ██║\n"
-                + "██║  ██║███████╗██║\n"
-                + "╚═╝  ╚═╝╚══════╝╚═╝";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm a z", Locale.ENGLISH);
-        System.out.println(banner);
-        System.out.println(DIVIDER);
-        System.out.println(ZonedDateTime.now().format(formatter));
-        System.out.println(DIVIDER);
-        System.out.println("Hey there, my name is Rei!");
-        System.out.println("How can I help you today?");
-        System.out.println(DIVIDER);
-    }
     /** Process the command that is given by user. */
-    private static Task processCommand(Command command, String details, List<Task> tasks)
+    private static Task processCommand(Command command, String details, List<Task> tasks, Ui ui)
             throws ReiException {
         return switch (command) {
         case TODO -> createTodo(details);
         case DEADLINE -> createDeadline(details);
         case EVENT -> createEvent(details);
         case MARK -> {
-            updateTaskStatus(details, tasks, true);
+            updateTaskStatus(details, tasks, true, ui);
             yield null;
         }
         case UNMARK -> {
-            updateTaskStatus(details, tasks, false);
+            updateTaskStatus(details, tasks, false, ui);
             yield null;
         }
         case LIST, FIND, DELETE, BYE -> throw new IllegalStateException("Command already handled: " + command);
@@ -224,7 +194,7 @@ public class Rei {
     }
 
     /** Updates a task's completion status*/
-    private static void updateTaskStatus(String details, List<Task> tasks, boolean isDone)
+    private static void updateTaskStatus(String details, List<Task> tasks, boolean isDone, Ui ui)
             throws ReiException {
         Command command = isDone ? Command.MARK : Command.UNMARK;
         if (details.isEmpty()) {
@@ -235,35 +205,34 @@ public class Rei {
                     + command.getKeyword() + " {task no.}");
         }
         int taskIndex = getTaskIndex(details, tasks.size(), command.getKeyword());
-        if (isDone) {
-            tasks.get(taskIndex).markAsDone();
-            System.out.println("Alright! I have set it to done! Good Work!\n");
-        } else {
-            tasks.get(taskIndex).markAsUndone();
-            System.out.println("Got it! I have set it to not done!\n");
-        }
         Task task = tasks.get(taskIndex);
-        System.out.println("[" + task.getTaskType() + "]"
-                + "[" + task.getStatusIcon() + "] " + task.getDescription());
-    }
-
-    /** Prints all stored tasks in their current list order. */
-    private static void printTasks(List<Task> tasks) {
-        if (tasks.isEmpty()) {
-            System.out.println("Yay! You have completed all your tasks");
-            return;
+        if (isDone) {
+            task.markAsDone();
+        } else {
+            task.markAsUndone();
         }
-        System.out.println("Here are the tasks in your list:");
-        System.out.println("No. of tasks: " + tasks.size());
-        for (int i = 0; i < tasks.size(); i++) {
-            Task task = tasks.get(i);
-            System.out.println((i + 1) + ".[" + task.getTaskType() + "]"
-                    + "[" + task.getStatusIcon() + "] " + task);
-        }
+        ui.showTaskStatusChanged(task, isDone);
     }
 
     /** Prints deadlines and events that occur on a user-specified calendar date. */
-    private static void printTasksOnDate(String details, List<Task> tasks) throws ReiException {
+    private static void printTasksOnDate(String details, List<Task> tasks, Ui ui) throws ReiException {
+        LocalDate date = getDate(details);
+
+        boolean foundTask = false;
+        ui.showTasksOnDateHeading(date);
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            if (occursOn(task, date)) {
+                ui.showNumberedTask(i + 1, task);
+                foundTask = true;
+            }
+        }
+        if (!foundTask) {
+            ui.showNoTasksOnDate();
+        }
+    }
+
+    private static LocalDate getDate(String details) throws ReiException {
         LocalDate date = null;
         for (DateTimeFormatter formatter : FIND_DATE_FORMATS) {
             try {
@@ -277,21 +246,7 @@ public class Rei {
             throw new ReiException("Please provide a valid date in yyyy-MM-dd, yyyy/MM/dd, "
                     + "dd/MM/yyyy, or dd-MM-yyyy format. Try: find 2019-12-02");
         }
-
-        boolean foundTask = false;
-        System.out.println("Tasks occurring on " + date.format(
-                DateTimeFormatter.ofPattern("MMM dd yyyy", Locale.ENGLISH)) + ":");
-        for (int i = 0; i < tasks.size(); i++) {
-            Task task = tasks.get(i);
-            if (occursOn(task, date)) {
-                System.out.println((i + 1) + ".[" + task.getTaskType() + "]"
-                        + "[" + task.getStatusIcon() + "] " + task);
-                foundTask = true;
-            }
-        }
-        if (!foundTask) {
-            System.out.println("No deadlines or events occur on this date.");
-        }
+        return date;
     }
 
     /** Returns whether a scheduled task falls on the supplied date. */
@@ -341,11 +296,5 @@ public class Rei {
         } catch (NumberFormatException exception) {
             throw new ReiException("Try a number from 1 to " + taskCount + "!");
         }
-    }
-
-    /** Prints one error message */
-    private static void printError(String message) {
-        System.out.println(message);
-        System.out.println(DIVIDER);
     }
 }
