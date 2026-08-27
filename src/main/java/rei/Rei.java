@@ -42,6 +42,11 @@ public class Rei {
             DateTimeFormatter.ofPattern("d-M-uuuu", Locale.ENGLISH)
                     .withResolverStyle(ResolverStyle.STRICT));
 
+    /**
+     * Starts Rei's command-line interface and processes commands until the user exits.
+     *
+     * @param args Command-line arguments, which are not used.
+     */
     public static void main(String[] args) {
         Ui ui = new Ui();
         ui.showGreeting();
@@ -132,7 +137,7 @@ public class Rei {
         }
     }
 
-    /** Process the command that is given by user. */
+    /** Processes a task-creating or task-status command entered by the user. */
     private static Task processCommand(Command command, String details, List<Task> tasks, Ui ui)
             throws ReiException {
         return switch (command) {
@@ -151,7 +156,7 @@ public class Rei {
         };
     }
 
-    /** Creates a todo task.*/
+    /** Creates a todo task after validating that a description was provided. */
     private static Task createTodo(String details) throws ReiException {
         if (details.isEmpty()) {
             throw new ReiException("A todo needs a description. \nTry: todo {your task}");
@@ -159,7 +164,7 @@ public class Rei {
         return new Task(details);
     }
 
-    /** Creates a deadline task */
+    /** Creates a deadline task from its description and typed due date. */
     private static Task createDeadline(String details) throws ReiException {
         String[] deadlineParts = details.split("\\s+/by\\s+", -1);
         if (deadlineParts.length != 2 || deadlineParts[0].isEmpty() || deadlineParts[1].isEmpty()) {
@@ -169,7 +174,7 @@ public class Rei {
         return new Deadlines(deadlineParts[0], parseDateTime(deadlineParts[1]));
     }
 
-    /** Creates an event task*/
+    /** Creates an event task after validating its description and time range. */
     private static Task createEvent(String details) throws ReiException {
         String[] eventParts = details.split("\\s+/from\\s+", -1);
         if (eventParts.length != 2) {
@@ -203,7 +208,7 @@ public class Rei {
                 + "dd/MM/yyyy, or dd-MM-yyyy format, followed by a 24-hour time such as 1800.");
     }
 
-    /** Updates a task's completion status*/
+    /** Updates a selected task's completion status and displays the result. */
     private static void updateTaskStatus(String details, List<Task> tasks, boolean isDone, Ui ui)
             throws ReiException {
         Command command = isDone ? Command.MARK : Command.UNMARK;
@@ -242,6 +247,7 @@ public class Rei {
         }
     }
 
+    /** Converts a supported user-entered date into a typed calendar date. */
     private static LocalDate getDate(String details) throws ReiException {
         LocalDate date = null;
         for (DateTimeFormatter formatter : FIND_DATE_FORMATS) {
