@@ -48,7 +48,13 @@ jar {
 }
 
 shadowJar {
-    archiveFileName = 'duke.jar'
+    // Give the distributable JAR a simple, predictable filename.
+    archiveFileName = 'rei.jar'
+}
+
+// Include the executable fat JAR whenever the normal Gradle build is run.
+tasks.named('build') {
+    dependsOn tasks.named('shadowJar')
 }
 
 run {
