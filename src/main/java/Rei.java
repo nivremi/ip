@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** Coordinates Rei's command processing, task management, storage, and UI. */
+/** Coordinates Rei command processing, task management, storage, and UI. */
 public class Rei {
     private static final Path DATA_FILE = Path.of(System.getProperty(
             "rei.data.file", Path.of("data", "rei.txt").toString()));
@@ -66,19 +66,19 @@ public class Rei {
                 if (command == Command.LIST) {
                     ensureNoDetails(command, details);
                     ui.showTasks(tasks);
-                    ui.showLine();
+                    ui.divider();
                     continue;
                 }
                 if (command == Command.FIND) {
                     printTasksOnDate(details, tasks, ui);
-                    ui.showLine();
+                    ui.divider();
                     continue;
                 }
                 if (command == Command.DELETE) {
                     Task deletedTask = deleteTask(details, tasks);
                     saveTasks(storage, tasks);
                     ui.showTaskDeleted(deletedTask, tasks.size());
-                    ui.showLine();
+                    ui.divider();
                     continue;
                 }
 
@@ -94,7 +94,7 @@ public class Rei {
                 ui.showError(exception.getMessage());
                 continue;
             }
-            ui.showLine();
+            ui.divider();
         }
         ui.close();
     }
@@ -216,19 +216,7 @@ public class Rei {
 
     /** Prints deadlines and events that occur on a user-specified calendar date. */
     private static void printTasksOnDate(String details, List<Task> tasks, Ui ui) throws ReiException {
-        LocalDate date = null;
-        for (DateTimeFormatter formatter : FIND_DATE_FORMATS) {
-            try {
-                date = LocalDate.parse(details, formatter);
-                break;
-            } catch (DateTimeParseException ignored) {
-                // Try the next supported format.
-            }
-        }
-        if (date == null) {
-            throw new ReiException("Please provide a valid date in yyyy-MM-dd, yyyy/MM/dd, "
-                    + "dd/MM/yyyy, or dd-MM-yyyy format. Try: find 2019-12-02");
-        }
+        LocalDate date = getDate(details);
 
         boolean foundTask = false;
         ui.showTasksOnDateHeading(date);
@@ -242,6 +230,23 @@ public class Rei {
         if (!foundTask) {
             ui.showNoTasksOnDate();
         }
+    }
+
+    private static LocalDate getDate(String details) throws ReiException {
+        LocalDate date = null;
+        for (DateTimeFormatter formatter : FIND_DATE_FORMATS) {
+            try {
+                date = LocalDate.parse(details, formatter);
+                break;
+            } catch (DateTimeParseException ignored) {
+                // Try the next supported format.
+            }
+        }
+        if (date == null) {
+            throw new ReiException("Please provide a valid date in yyyy-MM-dd, yyyy/MM/dd, "
+                    + "dd/MM/yyyy, or dd-MM-yyyy format. Try: find 2019-12-02");
+        }
+        return date;
     }
 
     /** Returns whether a scheduled task falls on the supplied date. */

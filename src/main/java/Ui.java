@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 /** Handles all console input and output for Rei. */
 public class Ui {
-    private static final String DIVIDER = "------------------------------------------------------------";
+    private static final String DIVIDER_CONST = "------------------------------------------------------------";
     private static final DateTimeFormatter CURRENT_DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm a z", Locale.ENGLISH);
     private static final DateTimeFormatter TASK_DATE_FORMAT =
@@ -40,42 +40,42 @@ public class Ui {
                 + "██║  ██║███████╗██║\n"
                 + "╚═╝  ╚═╝╚══════╝╚═╝";
         System.out.println(banner);
-        showLine();
+        divider();
         System.out.println(ZonedDateTime.now().format(CURRENT_DATE_FORMAT));
-        showLine();
+        divider();
         System.out.println("Hey there, my name is Rei!");
         System.out.println("How can I help you today?");
-        showLine();
+        divider();
     }
 
     /** Displays the divider between command responses. */
-    public void showLine() {
-        System.out.println(DIVIDER);
+    public void divider() {
+        System.out.println(DIVIDER_CONST);
     }
 
     /** Displays an error followed by a divider. */
     public void showError(String message) {
         System.out.println(message);
-        showLine();
+        divider();
     }
 
     /** Displays a warning about invalid saved task records. */
     public void showSkippedTasksWarning(int skippedLines) {
         System.out.println("Warning: I skipped " + skippedLines
                 + " invalid line(s) in the data file.");
-        showLine();
+        divider();
     }
 
     /** Displays a warning when saved tasks cannot be loaded. */
     public void showLoadingError() {
-        System.out.println("Warning: I could not read the data file. Starting with an empty list.");
-        showLine();
+        System.out.println("Warning: Oh man I could not read the data file. Gonna create an empty list.");
+        divider();
     }
 
     /** Displays the farewell message. */
     public void showExit() {
         System.out.println("Bye! Hope to see you again soon!");
-        showLine();
+        divider();
     }
 
     /** Displays confirmation that a task was added. */
