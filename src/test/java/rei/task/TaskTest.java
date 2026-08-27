@@ -1,12 +1,12 @@
 package rei.task;
 
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.LocalDateTime;
+
+import org.junit.jupiter.api.Test;
 
 /** Tests task state changes and scheduled-task display formatting. */
 public class TaskTest {
@@ -37,5 +37,17 @@ public class TaskTest {
         assertEquals("submit report (by: Aug 28 2026, 6:00 PM)", deadline.toString());
         assertEquals("project meeting (from: Aug 29 2026, 10:00 AM "
                 + "to: Aug 29 2026, 12:00 PM)", event.toString());
+    }
+
+    @Test
+    public void hasKeyword_variedKeywords_matchesDescriptionCaseInsensitively() {
+        Task task = new Deadlines(
+                "Return Library Book", LocalDateTime.of(2026, 8, 28, 18, 0));
+
+        assertTrue(task.hasKeyword("book"));
+        assertTrue(task.hasKeyword("LIBRARY"));
+        assertTrue(task.hasKeyword("turn lib"));
+        assertFalse(task.hasKeyword("report"));
+        assertFalse(task.hasKeyword("2026"));
     }
 }

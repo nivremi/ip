@@ -1,13 +1,13 @@
 package rei.ui;
 
-import rei.task.Task;
-
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
+
+import rei.task.Task;
 
 /** Handles all console input and output for Rei. */
 public class Ui {
@@ -135,6 +135,16 @@ public class Ui {
     /** Displays that no deadline or event occurs on the requested date. */
     public void showNoTasksOnDate() {
         System.out.println("No deadlines or events occur on this date.");
+    }
+
+    /** Displays the heading for a keyword search result. */
+    public void showMatchingTasksHeading() {
+        System.out.println("Here are the matching tasks in your list:");
+    }
+
+    /** Displays that no task description contains the requested keyword. */
+    public void showNoMatchingTasks() {
+        System.out.println("No matching tasks found.");
     }
 
     /** Releases the input scanner when Rei exits. */

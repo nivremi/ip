@@ -484,6 +484,61 @@ Bye! Hope to see you again soon!
 ------------------------------------------------------------
 ```
 
+## Test case: Find tasks by description keyword
+
+**Aim:** Verify that `find` matches partial descriptions case-insensitively, preserves original task numbers, ignores date metadata, reports no matches, and rejects an empty query.
+
+**Input:**
+
+```text
+todo read book
+deadline return Library Book /by 2/12/2019 1800
+event book club /from 3/12/2019 1000 /to 3/12/2019 1200
+todo submit report
+find book
+find LIBRARY
+find 2019
+find missing
+find
+bye
+```
+
+**Expected output:**
+
+```text
+{{ANY_PREFIX}}
+Okay, I've added: [T][ ] read book
+You have a total of 1 tasks in the list.
+------------------------------------------------------------
+Okay, I've added: [D][ ] return Library Book (by: Dec 02 2019, 6:00 PM)
+You have a total of 2 tasks in the list.
+------------------------------------------------------------
+Okay, I've added: [E][ ] book club (from: Dec 03 2019, 10:00 AM to: Dec 03 2019, 12:00 PM)
+You have a total of 3 tasks in the list.
+------------------------------------------------------------
+Okay, I've added: [T][ ] submit report
+You have a total of 4 tasks in the list.
+------------------------------------------------------------
+Here are the matching tasks in your list:
+1.[T][ ] read book
+2.[D][ ] return Library Book (by: Dec 02 2019, 6:00 PM)
+3.[E][ ] book club (from: Dec 03 2019, 10:00 AM to: Dec 03 2019, 12:00 PM)
+------------------------------------------------------------
+Here are the matching tasks in your list:
+2.[D][ ] return Library Book (by: Dec 02 2019, 6:00 PM)
+------------------------------------------------------------
+Here are the matching tasks in your list:
+No matching tasks found.
+------------------------------------------------------------
+Here are the matching tasks in your list:
+No matching tasks found.
+------------------------------------------------------------
+Please provide a keyword or date. Try: find book
+------------------------------------------------------------
+Bye! Hope to see you again soon!
+------------------------------------------------------------
+```
+
 ## Test case: Explain invalid commands and task details
 
 **Aim:** Verify that invalid input is handled without crashing and each message explains how to correct it.
