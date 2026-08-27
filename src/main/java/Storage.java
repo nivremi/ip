@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -54,10 +55,10 @@ public class Storage {
         fields.add(task.isDone() ? "1" : "0");
         fields.add(encode(task.getDescription()));
         if (task instanceof Deadlines deadline) {
-            fields.add(encode(deadline.getBy()));
+            fields.add(encode(deadline.getBy().toString()));
         } else if (task instanceof Events event) {
-            fields.add(encode(event.getStart()));
-            fields.add(encode(event.getEnd()));
+            fields.add(encode(event.getStart().toString()));
+            fields.add(encode(event.getEnd().toString()));
         }
         return String.join(FIELD_SEPARATOR, fields);
     }
@@ -76,11 +77,13 @@ public class Storage {
         }
         case "D" -> {
             requireLength(fields, 4);
-            yield new Deadlines(decodeRequired(fields[2]), decodeRequired(fields[3]));
+            yield new Deadlines(decodeRequired(fields[2]),
+                    LocalDateTime.parse(decodeRequired(fields[3])));
         }
         case "E" -> {
             requireLength(fields, 5);
-            yield new Events(decodeRequired(fields[2]), decodeRequired(fields[3]), decodeRequired(fields[4]));
+            yield new Events(decodeRequired(fields[2]), LocalDateTime.parse(decodeRequired(fields[3])),
+                    LocalDateTime.parse(decodeRequired(fields[4])));
         }
         default -> throw new IllegalArgumentException("Unknown task type");
         };
