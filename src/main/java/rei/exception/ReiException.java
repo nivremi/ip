@@ -1,3 +1,5 @@
+package rei.exception;
+
 /**
  * Represents an input error that Rei can explain to the user.
  */

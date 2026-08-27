@@ -1,3 +1,5 @@
+package rei.command;
+
 /**
  * Represents a command recognised by Rei.
  */

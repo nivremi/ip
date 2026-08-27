@@ -3,7 +3,7 @@
 ## Program command
 
 ```text
-java -cp build UiTestLauncher
+java -cp build rei.UiTestLauncher
 ```
 
 The command assumes the project has been compiled into `build` with Java 25.

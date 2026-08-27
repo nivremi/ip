@@ -1,3 +1,5 @@
+package rei.task;
+
 /**
  * Identifies the kind of task stored by Rei and its display code.
  */
