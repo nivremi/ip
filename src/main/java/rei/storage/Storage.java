@@ -18,7 +18,11 @@ public class Storage {
     private static final String FIELD_SEPARATOR = " | ";
     private final Path filePath;
 
-    /** Creates storage that uses the supplied data file. */
+    /**
+     * Creates storage that uses the supplied data file.
+     *
+     * @param filePath Location of the task data file.
+     */
     public Storage(Path filePath) {
         this.filePath = filePath;
     }
@@ -106,10 +110,12 @@ public class Storage {
         }
     }
 
+    /** Encodes text so task descriptions cannot conflict with storage delimiters. */
     private String encode(String text) {
         return Base64.getEncoder().encodeToString(text.getBytes(StandardCharsets.UTF_8));
     }
 
+    /** Decodes text that was previously encoded for safe storage. */
     private String decode(String text) {
         return new String(Base64.getDecoder().decode(text), StandardCharsets.UTF_8);
     }
@@ -123,7 +129,12 @@ public class Storage {
         return decoded;
     }
 
-    /** Contains loaded tasks and the number of malformed records that were skipped. */
+    /**
+     * Contains loaded tasks and the number of malformed records that were skipped.
+     *
+     * @param tasks Valid tasks reconstructed from storage.
+     * @param skippedLines Number of malformed records ignored while loading.
+     */
     public record LoadResult(List<Task> tasks, int skippedLines) {
     }
 }

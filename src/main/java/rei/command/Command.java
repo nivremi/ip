@@ -16,6 +16,11 @@ public enum Command {
 
     private final String keyword;
 
+    /**
+     * Creates a command with the keyword users enter to invoke it.
+     *
+     * @param keyword Text identifying the command.
+     */
     Command(String keyword) {
         this.keyword = keyword;
     }

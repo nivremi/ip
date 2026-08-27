@@ -10,6 +10,11 @@ public enum TaskType {
 
     private final String displayCode;
 
+    /**
+     * Creates a task type with the specified command-line display code.
+     *
+     * @param displayCode Short code shown beside tasks of this type.
+     */
     TaskType(String displayCode) {
         this.displayCode = displayCode;
     }
