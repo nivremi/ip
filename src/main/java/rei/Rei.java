@@ -1,3 +1,13 @@
+package rei;
+
+import rei.command.Command;
+import rei.exception.ReiException;
+import rei.storage.Storage;
+import rei.task.Deadlines;
+import rei.task.Events;
+import rei.task.Task;
+import rei.ui.Ui;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDate;
