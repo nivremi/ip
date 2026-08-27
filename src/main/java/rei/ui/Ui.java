@@ -1,7 +1,5 @@
 package rei.ui;
 
-import rei.task.Task;
-
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -9,9 +7,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 
+import rei.task.Task;
+
 /** Handles all console input and output for Rei. */
 public class Ui {
-    private static final String DIVIDER_CONST = "------------------------------------------------------------";
+    private static final String DIVIDER = "------------------------------------------------------------";
     private static final DateTimeFormatter CURRENT_DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm a z", Locale.ENGLISH);
     private static final DateTimeFormatter TASK_DATE_FORMAT =
@@ -36,8 +36,7 @@ public class Ui {
 
     /** Displays Rei's welcome banner and greeting. */
     public void showGreeting() {
-        String banner = "" +
-                "\n██████╗ ███████╗██╗\n"
+        String banner = "\n██████╗ ███████╗██╗\n"
                 + "██╔══██╗██╔════╝██║\n"
                 + "██████╔╝█████╗  ██║\n"
                 + "██╔══██╗██╔══╝  ██║\n"
@@ -54,7 +53,7 @@ public class Ui {
 
     /** Displays the divider between command responses. */
     public void divider() {
-        System.out.println(DIVIDER_CONST);
+        System.out.println(DIVIDER);
     }
 
     /** Displays an error followed by a divider. */

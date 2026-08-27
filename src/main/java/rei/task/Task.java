@@ -1,10 +1,12 @@
 package rei.task;
 
+/** Represents a task tracked by Rei. */
 public class Task {
-    protected boolean isDone;
-    protected String description;
-    protected TaskType taskType;
+    private boolean isDone;
+    private final String description;
+    private final TaskType taskType;
 
+    /** Creates an incomplete todo with the specified description. */
     public Task(String description) {
         this(description, TaskType.TODO);
     }
@@ -12,8 +14,8 @@ public class Task {
     /**
      * Creates a task with the specified type.
      *
-     * @param description task description
-     * @param taskType category of the task
+     * @param description Task description.
+     * @param taskType Category of the task.
      */
     protected Task(String description, TaskType taskType) {
         this.description = description;
@@ -24,12 +26,13 @@ public class Task {
     public String getStatusIcon() {
         return (isDone ? "X" : " ");
     }
+
     public String getDescription() {
-        return this.description;
+        return description;
     }
 
     public String getTaskType() {
-        return this.taskType.getDisplayCode();
+        return taskType.getDisplayCode();
     }
 
     /** Returns whether this task has been completed. */
@@ -38,15 +41,15 @@ public class Task {
     }
 
     public void markAsDone() {
-        this.isDone = true;
+        isDone = true;
     }
 
     public void markAsUndone() {
-        this.isDone = false;
+        isDone = false;
     }
 
     @Override
-    public String toString(){
-        return this.description;
+    public String toString() {
+        return description;
     }
 }

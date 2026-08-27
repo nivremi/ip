@@ -1,11 +1,7 @@
 package rei.storage;
 
-import rei.task.Deadlines;
-import rei.task.Events;
-import rei.task.Task;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -14,8 +10,12 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import rei.task.Deadlines;
+import rei.task.Events;
+import rei.task.Task;
 
 /** Tests saving, loading, and recovery behavior of {@link Storage}. */
 public class StorageTest {

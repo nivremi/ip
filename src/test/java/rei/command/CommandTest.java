@@ -1,9 +1,9 @@
 package rei.command;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+
+import org.junit.jupiter.api.Test;
 
 /** Tests conversion between user-entered keywords and {@link Command} values. */
 public class CommandTest {

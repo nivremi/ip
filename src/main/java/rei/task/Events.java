@@ -4,12 +4,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+/** Represents a task that occurs over a date and time range. */
 public class Events extends Task {
     private static final DateTimeFormatter DISPLAY_FORMAT =
             DateTimeFormatter.ofPattern("MMM dd yyyy, h:mm a", Locale.ENGLISH);
     private LocalDateTime start;
     private LocalDateTime end;
 
+    /** Creates an incomplete event with the specified start and end. */
     public Events(String description, LocalDateTime start, LocalDateTime end) {
         super(description, TaskType.EVENT);
         this.start = start;
@@ -33,8 +35,8 @@ public class Events extends Task {
     }
 
     @Override
-    public String toString(){
-        return description + " (from: " + start.format(DISPLAY_FORMAT)
+    public String toString() {
+        return getDescription() + " (from: " + start.format(DISPLAY_FORMAT)
                 + " to: " + end.format(DISPLAY_FORMAT) + ")";
     }
 }
