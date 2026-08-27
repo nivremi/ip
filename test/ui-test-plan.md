@@ -3,10 +3,10 @@
 ## Program command
 
 ```text
-java -cp build rei.UiTestLauncher
+java -cp build/classes/java/main;build/classes/java/test rei.UiTestLauncher
 ```
 
-The command assumes the project has been compiled into `build` with Java 25.
+The command assumes the project has been compiled with `gradlew test` using Java 25.
 The test launcher removes the test data before each case so cases remain independent.
 
 ## Test case: Add tasks and list them

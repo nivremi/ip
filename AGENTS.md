@@ -32,6 +32,10 @@ Ensure that Java 25 is used when running the application or build tasks. On macO
 
 After each code update, update `test/ui-test-plan.md` when the change affects the command-line UI or its expected output. Then invoke the project-local `test-ui` skill to run the recorded UI test cases. If Java 25 or another required dependency is unavailable, report that limitation clearly rather than silently skipping the test.
 
+## JUnit test maintenance
+
+Maintain JUnit coverage for approximately the top 50% highest-value methods, prioritizing complex, core, and critical business logic. After each code change, update the relevant JUnit tests as needed to keep this coverage target and run them using Gradle.
+
 ## Git
 
 Use lightweight tags unless the user requests an annotated tag.
