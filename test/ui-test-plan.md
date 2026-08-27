@@ -144,7 +144,7 @@ bye
 Okay, I've added: [T][ ] spaced task
 You have a total of 1 tasks in the list.
 ------------------------------------------------------------
-I'm sorry, I don't know what is 'TODO'. Try todo, deadline, event, list, delete, mark, unmark, or bye.
+I'm sorry, I don't know what is 'TODO'. Try todo, deadline, event, list, find, delete, mark, unmark, or bye.
 ------------------------------------------------------------
 Here are the tasks in your list:
 No. of tasks: 1
@@ -191,8 +191,8 @@ Bye! Hope to see you again soon!
 
 ```text
 todo read book
-deadline return book /by Friday
-event project meeting /from Monday /to Tuesday
+deadline return book /by 2/12/2019 1800
+event project meeting /from 3/12/2019 1000 /to 3/12/2019 1200
 todo borrow book
 delete 3
 list
@@ -210,23 +210,23 @@ bye
 Okay, I've added: [T][ ] read book
 You have a total of 1 tasks in the list.
 ------------------------------------------------------------
-Okay, I've added: [D][ ] return book (by: Friday)
+Okay, I've added: [D][ ] return book (by: Dec 02 2019, 6:00 PM)
 You have a total of 2 tasks in the list.
 ------------------------------------------------------------
-Okay, I've added: [E][ ] project meeting (from: Monday to: Tuesday)
+Okay, I've added: [E][ ] project meeting (from: Dec 03 2019, 10:00 AM to: Dec 03 2019, 12:00 PM)
 You have a total of 3 tasks in the list.
 ------------------------------------------------------------
 Okay, I've added: [T][ ] borrow book
 You have a total of 4 tasks in the list.
 ------------------------------------------------------------
 Gotcha, I will remove this task from your list:
-  [E][ ] project meeting (from: Monday to: Tuesday)
+  [E][ ] project meeting (from: Dec 03 2019, 10:00 AM to: Dec 03 2019, 12:00 PM)
 Now you have 3 tasks in the list.
 ------------------------------------------------------------
 Here are the tasks in your list:
 No. of tasks: 3
 1.[T][ ] read book
-2.[D][ ] return book (by: Friday)
+2.[D][ ] return book (by: Dec 02 2019, 6:00 PM)
 3.[T][ ] borrow book
 ------------------------------------------------------------
 Gotcha, I will remove this task from your list:
@@ -236,7 +236,7 @@ Now you have 2 tasks in the list.
 Here are the tasks in your list:
 No. of tasks: 2
 1.[T][ ] read book
-2.[D][ ] return book (by: Friday)
+2.[D][ ] return book (by: Dec 02 2019, 6:00 PM)
 ------------------------------------------------------------
 Task 4 does not exist.
 Let's try that again!
@@ -314,9 +314,9 @@ Bye! Hope to see you again soon!
 
 ```text
 deadline /by Friday
-deadline return book /by Friday
+deadline return book /by 2019-12-02 1800
 event meeting /from Monday
-event meeting /from Monday /to Tuesday
+event meeting /from 2019-12-03 1000 /to 2019-12-03 1200
 deadline submit report /by
 list
 bye
@@ -329,13 +329,13 @@ bye
 A deadline needs a description and a by date. 
 Try: deadline {your task} /by {deadline}
 ------------------------------------------------------------
-Okay, I've added: [D][ ] return book (by: Friday)
+Okay, I've added: [D][ ] return book (by: Dec 02 2019, 6:00 PM)
 You have a total of 1 tasks in the list.
 ------------------------------------------------------------
 An event needs a description, start, and end time. 
 Try: event {task} /from {start} /to {end}
 ------------------------------------------------------------
-Okay, I've added: [E][ ] meeting (from: Monday to: Tuesday)
+Okay, I've added: [E][ ] meeting (from: Dec 03 2019, 10:00 AM to: Dec 03 2019, 12:00 PM)
 You have a total of 2 tasks in the list.
 ------------------------------------------------------------
 A deadline needs a description and a by date. 
@@ -343,8 +343,8 @@ Try: deadline {your task} /by {deadline}
 ------------------------------------------------------------
 Here are the tasks in your list:
 No. of tasks: 2
-1.[D][ ] return book (by: Friday)
-2.[E][ ] meeting (from: Monday to: Tuesday)
+1.[D][ ] return book (by: Dec 02 2019, 6:00 PM)
+2.[E][ ] meeting (from: Dec 03 2019, 10:00 AM to: Dec 03 2019, 12:00 PM)
 ------------------------------------------------------------
 Bye! Hope to see you again soon!
 ------------------------------------------------------------
@@ -366,6 +366,119 @@ bye
 ```text
 {{ANY_PREFIX}}
 Yay! You have completed all your tasks
+------------------------------------------------------------
+Bye! Hope to see you again soon!
+------------------------------------------------------------
+```
+
+## Test case: Parse, format, and validate dates and times
+
+**Aim:** Verify that all four supported date formats become typed dates, impossible dates are rejected, and an event cannot end before it starts.
+
+**Input:**
+
+```text
+deadline hyphen year first /by 2019-12-01 1800
+deadline slash year first /by 2019/12/02 1800
+deadline slash day first /by 03/12/2019 1800
+event hyphen day first /from 04-12-2019 0900 /to 04-12-2019 1100
+deadline impossible /by 31/2/2019 1800
+event backwards /from 2019-12-04 1200 /to 2019-12-04 1000
+list
+bye
+```
+
+**Expected output:**
+
+```text
+{{ANY_PREFIX}}
+Okay, I've added: [D][ ] hyphen year first (by: Dec 01 2019, 6:00 PM)
+You have a total of 1 tasks in the list.
+------------------------------------------------------------
+Okay, I've added: [D][ ] slash year first (by: Dec 02 2019, 6:00 PM)
+You have a total of 2 tasks in the list.
+------------------------------------------------------------
+Okay, I've added: [D][ ] slash day first (by: Dec 03 2019, 6:00 PM)
+You have a total of 3 tasks in the list.
+------------------------------------------------------------
+Okay, I've added: [E][ ] hyphen day first (from: Dec 04 2019, 9:00 AM to: Dec 04 2019, 11:00 AM)
+You have a total of 4 tasks in the list.
+------------------------------------------------------------
+Please use a valid date and time in yyyy-MM-dd, yyyy/MM/dd, dd/MM/yyyy, or dd-MM-yyyy format, followed by a 24-hour time such as 1800.
+------------------------------------------------------------
+An event's end time cannot be before its start time.
+------------------------------------------------------------
+Here are the tasks in your list:
+No. of tasks: 4
+1.[D][ ] hyphen year first (by: Dec 01 2019, 6:00 PM)
+2.[D][ ] slash year first (by: Dec 02 2019, 6:00 PM)
+3.[D][ ] slash day first (by: Dec 03 2019, 6:00 PM)
+4.[E][ ] hyphen day first (from: Dec 04 2019, 9:00 AM to: Dec 04 2019, 11:00 AM)
+------------------------------------------------------------
+Bye! Hope to see you again soon!
+------------------------------------------------------------
+```
+
+## Test case: Find scheduled tasks occurring on a date
+
+**Aim:** Verify that `find` accepts all four date formats and lists matching deadlines and single-day or multi-day events using their original task numbers, while excluding todos and other dates.
+
+**Input:**
+
+```text
+todo buy snacks
+deadline return book /by 2/12/2019 1800
+deadline submit report /by 5/12/2019 1200
+event conference /from 2019-12-02 2300 /to 2019-12-04 0100
+find 2019-12-02
+find 2019/12/02
+find 02/12/2019
+find 02-12-2019
+find 2019-12-03
+find 2019-12-06
+find 31/02/2019
+bye
+```
+
+**Expected output:**
+
+```text
+{{ANY_PREFIX}}
+Okay, I've added: [T][ ] buy snacks
+You have a total of 1 tasks in the list.
+------------------------------------------------------------
+Okay, I've added: [D][ ] return book (by: Dec 02 2019, 6:00 PM)
+You have a total of 2 tasks in the list.
+------------------------------------------------------------
+Okay, I've added: [D][ ] submit report (by: Dec 05 2019, 12:00 PM)
+You have a total of 3 tasks in the list.
+------------------------------------------------------------
+Okay, I've added: [E][ ] conference (from: Dec 02 2019, 11:00 PM to: Dec 04 2019, 1:00 AM)
+You have a total of 4 tasks in the list.
+------------------------------------------------------------
+Tasks occurring on Dec 02 2019:
+2.[D][ ] return book (by: Dec 02 2019, 6:00 PM)
+4.[E][ ] conference (from: Dec 02 2019, 11:00 PM to: Dec 04 2019, 1:00 AM)
+------------------------------------------------------------
+Tasks occurring on Dec 02 2019:
+2.[D][ ] return book (by: Dec 02 2019, 6:00 PM)
+4.[E][ ] conference (from: Dec 02 2019, 11:00 PM to: Dec 04 2019, 1:00 AM)
+------------------------------------------------------------
+Tasks occurring on Dec 02 2019:
+2.[D][ ] return book (by: Dec 02 2019, 6:00 PM)
+4.[E][ ] conference (from: Dec 02 2019, 11:00 PM to: Dec 04 2019, 1:00 AM)
+------------------------------------------------------------
+Tasks occurring on Dec 02 2019:
+2.[D][ ] return book (by: Dec 02 2019, 6:00 PM)
+4.[E][ ] conference (from: Dec 02 2019, 11:00 PM to: Dec 04 2019, 1:00 AM)
+------------------------------------------------------------
+Tasks occurring on Dec 03 2019:
+4.[E][ ] conference (from: Dec 02 2019, 11:00 PM to: Dec 04 2019, 1:00 AM)
+------------------------------------------------------------
+Tasks occurring on Dec 06 2019:
+No deadlines or events occur on this date.
+------------------------------------------------------------
+Please provide a valid date in yyyy-MM-dd, yyyy/MM/dd, dd/MM/yyyy, or dd-MM-yyyy format. Try: find 2019-12-02
 ------------------------------------------------------------
 Bye! Hope to see you again soon!
 ------------------------------------------------------------
@@ -421,7 +534,7 @@ The list command does not take any extra text. Try: list
 ------------------------------------------------------------
 The bye command does not take any extra text. Try: bye
 ------------------------------------------------------------
-I'm sorry, I don't know what is 'blah'. Try todo, deadline, event, list, delete, mark, unmark, or bye.
+I'm sorry, I don't know what is 'blah'. Try todo, deadline, event, list, find, delete, mark, unmark, or bye.
 ------------------------------------------------------------
 Bye! Hope to see you again soon!
 ------------------------------------------------------------

@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -30,8 +31,9 @@ public class StorageEdgeCaseTest {
         todo.markAsDone();
         List<Task> original = List.of(
                 todo,
-                new Deadlines("submit report", "Friday 6pm"),
-                new Events("project meeting", "10am", "12pm"));
+                new Deadlines("submit report", LocalDateTime.of(2026, 8, 28, 18, 0)),
+                new Events("project meeting", LocalDateTime.of(2026, 8, 29, 10, 0),
+                        LocalDateTime.of(2026, 8, 29, 12, 0)));
         storage.save(original);
 
         Storage.LoadResult result = storage.load();

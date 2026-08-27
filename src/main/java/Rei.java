@@ -1,7 +1,11 @@
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -12,6 +16,24 @@ public class Rei {
     private static final String DIVIDER = "------------------------------------------------------------";
     private static final Path DATA_FILE = Path.of(System.getProperty(
             "rei.data.file", Path.of("data", "rei.txt").toString()));
+    private static final List<DateTimeFormatter> INPUT_DATE_FORMATS = List.of(
+            DateTimeFormatter.ofPattern("uuuu-MM-dd HHmm", Locale.ENGLISH)
+                    .withResolverStyle(ResolverStyle.STRICT),
+            DateTimeFormatter.ofPattern("uuuu/MM/dd HHmm", Locale.ENGLISH)
+                    .withResolverStyle(ResolverStyle.STRICT),
+            DateTimeFormatter.ofPattern("d/M/uuuu HHmm", Locale.ENGLISH)
+                    .withResolverStyle(ResolverStyle.STRICT),
+            DateTimeFormatter.ofPattern("d-M-uuuu HHmm", Locale.ENGLISH)
+                    .withResolverStyle(ResolverStyle.STRICT));
+    private static final List<DateTimeFormatter> FIND_DATE_FORMATS = List.of(
+            DateTimeFormatter.ofPattern("uuuu-MM-dd", Locale.ENGLISH)
+                    .withResolverStyle(ResolverStyle.STRICT),
+            DateTimeFormatter.ofPattern("uuuu/MM/dd", Locale.ENGLISH)
+                    .withResolverStyle(ResolverStyle.STRICT),
+            DateTimeFormatter.ofPattern("d/M/uuuu", Locale.ENGLISH)
+                    .withResolverStyle(ResolverStyle.STRICT),
+            DateTimeFormatter.ofPattern("d-M-uuuu", Locale.ENGLISH)
+                    .withResolverStyle(ResolverStyle.STRICT));
 
     public static void main(String[] args) {
         printGreeting();
@@ -27,13 +49,17 @@ public class Rei {
             }
 
             int firstSpace = userInput.indexOf(" ");
-            String commandText = firstSpace == -1 ? userInput : userInput.substring(0, firstSpace);
-            String details = firstSpace == -1 ? "" : userInput.substring(firstSpace).trim();
+            String commandText = firstSpace == -1
+                    ? userInput
+                    : userInput.substring(0, firstSpace);
+            String details = firstSpace == -1
+                    ? ""
+                    : userInput.substring(firstSpace).trim();
             Command command = Command.fromText(commandText);
             try {
                 if (command == null) {
                     throw new ReiException("I'm sorry, I don't know what is '" + commandText
-                            + "'. Try todo, deadline, event, list, delete, mark, unmark, or bye.");
+                            + "'. Try todo, deadline, event, list, find, delete, mark, unmark, or bye.");
                 }
                 if (command == Command.BYE) {
                     ensureNoDetails(command, details);
@@ -44,6 +70,11 @@ public class Rei {
                 if (command == Command.LIST) {
                     ensureNoDetails(command, details);
                     printTasks(tasks);
+                    System.out.println(DIVIDER);
+                    continue;
+                }
+                if (command == Command.FIND) {
+                    printTasksOnDate(details, tasks);
                     System.out.println(DIVIDER);
                     continue;
                 }
@@ -136,7 +167,7 @@ public class Rei {
             updateTaskStatus(details, tasks, false);
             yield null;
         }
-        case LIST, DELETE, BYE -> throw new IllegalStateException("Command already handled: " + command);
+        case LIST, FIND, DELETE, BYE -> throw new IllegalStateException("Command already handled: " + command);
         };
     }
 
@@ -155,7 +186,7 @@ public class Rei {
             throw new ReiException("A deadline needs a description and a by date. "
                     + "\nTry: deadline {your task} /by {deadline}");
         }
-        return new Deadlines(deadlineParts[0], deadlineParts[1]);
+        return new Deadlines(deadlineParts[0], parseDateTime(deadlineParts[1]));
     }
 
     /** Creates an event task*/
@@ -171,7 +202,25 @@ public class Rei {
             throw new ReiException("An event needs a description, start, and end time. "
                     + "\nTry: event {task} /from {start} /to {end}");
         }
-        return new Events(eventParts[0], timeParts[0], timeParts[1]);
+        LocalDateTime start = parseDateTime(timeParts[0]);
+        LocalDateTime end = parseDateTime(timeParts[1]);
+        if (end.isBefore(start)) {
+            throw new ReiException("An event's end time cannot be before its start time.");
+        }
+        return new Events(eventParts[0], start, end);
+    }
+
+    /** Converts a supported user-entered date and time into a typed value. */
+    private static LocalDateTime parseDateTime(String text) throws ReiException {
+        for (DateTimeFormatter formatter : INPUT_DATE_FORMATS) {
+            try {
+                return LocalDateTime.parse(text, formatter);
+            } catch (DateTimeParseException ignored) {
+                // Try the next supported format.
+            }
+        }
+        throw new ReiException("Please use a valid date and time in yyyy-MM-dd, yyyy/MM/dd, "
+                + "dd/MM/yyyy, or dd-MM-yyyy format, followed by a 24-hour time such as 1800.");
     }
 
     /** Updates a task's completion status*/
@@ -211,6 +260,51 @@ public class Rei {
             System.out.println((i + 1) + ".[" + task.getTaskType() + "]"
                     + "[" + task.getStatusIcon() + "] " + task);
         }
+    }
+
+    /** Prints deadlines and events that occur on a user-specified calendar date. */
+    private static void printTasksOnDate(String details, List<Task> tasks) throws ReiException {
+        LocalDate date = null;
+        for (DateTimeFormatter formatter : FIND_DATE_FORMATS) {
+            try {
+                date = LocalDate.parse(details, formatter);
+                break;
+            } catch (DateTimeParseException ignored) {
+                // Try the next supported format.
+            }
+        }
+        if (date == null) {
+            throw new ReiException("Please provide a valid date in yyyy-MM-dd, yyyy/MM/dd, "
+                    + "dd/MM/yyyy, or dd-MM-yyyy format. Try: find 2019-12-02");
+        }
+
+        boolean foundTask = false;
+        System.out.println("Tasks occurring on " + date.format(
+                DateTimeFormatter.ofPattern("MMM dd yyyy", Locale.ENGLISH)) + ":");
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            if (occursOn(task, date)) {
+                System.out.println((i + 1) + ".[" + task.getTaskType() + "]"
+                        + "[" + task.getStatusIcon() + "] " + task);
+                foundTask = true;
+            }
+        }
+        if (!foundTask) {
+            System.out.println("No deadlines or events occur on this date.");
+        }
+    }
+
+    /** Returns whether a scheduled task falls on the supplied date. */
+    private static boolean occursOn(Task task, LocalDate date) {
+        if (task instanceof Deadlines deadline) {
+            return deadline.getBy().toLocalDate().equals(date);
+        }
+        if (task instanceof Events event) {
+            LocalDate startDate = event.getStart().toLocalDate();
+            LocalDate endDate = event.getEnd().toLocalDate();
+            return !date.isBefore(startDate) && !date.isAfter(endDate);
+        }
+        return false;
     }
 
     /** Removes the requested task and keeps the remaining task indexes contiguous. */
