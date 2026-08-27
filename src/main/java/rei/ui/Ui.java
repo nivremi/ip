@@ -136,6 +136,16 @@ public class Ui {
         System.out.println("No deadlines or events occur on this date.");
     }
 
+    /** Displays the heading for a keyword search result. */
+    public void showMatchingTasksHeading() {
+        System.out.println("Here are the matching tasks in your list:");
+    }
+
+    /** Displays that no task description contains the requested keyword. */
+    public void showNoMatchingTasks() {
+        System.out.println("No matching tasks found.");
+    }
+
     /** Releases the input scanner when Rei exits. */
     public void close() {
         scanner.close();

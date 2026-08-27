@@ -1,5 +1,7 @@
 package rei.task;
 
+import java.util.Locale;
+
 /**
  * Represents a task with a description, completion status, and task type.
  */
@@ -58,6 +60,12 @@ public class Task {
     /** Returns whether this task has been completed. */
     public boolean isDone() {
         return isDone;
+    }
+
+    /** Returns whether the description contains the keyword, ignoring letter case. */
+    public boolean hasKeyword(String keyword) {
+        return description.toLowerCase(Locale.ENGLISH)
+                .contains(keyword.toLowerCase(Locale.ENGLISH));
     }
 
     /** Marks this task as completed. */

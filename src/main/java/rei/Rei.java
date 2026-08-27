@@ -85,7 +85,7 @@ public class Rei {
                     continue;
                 }
                 if (command == Command.FIND) {
-                    printTasksOnDate(details, tasks, ui);
+                    printFoundTasks(details, tasks, ui);
                     ui.divider();
                     continue;
                 }
@@ -228,6 +228,40 @@ public class Rei {
             task.markAsUndone();
         }
         ui.showTaskStatusChanged(task, isDone);
+    }
+
+    /** Finds tasks by date for date-shaped input, or by description keyword otherwise. */
+    private static void printFoundTasks(String details, List<Task> tasks, Ui ui) throws ReiException {
+        if (details.isEmpty()) {
+            throw new ReiException("Please provide a keyword or date. Try: find book");
+        }
+        if (isDateQuery(details)) {
+            printTasksOnDate(details, tasks, ui);
+            return;
+        }
+        printTasksMatchingKeyword(details, tasks, ui);
+    }
+
+    /** Returns whether the query has one of the supported date shapes. */
+    private static boolean isDateQuery(String details) {
+        return details.matches("\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}")
+                || details.matches("\\d{1,2}[-/]\\d{1,2}[-/]\\d{4}");
+    }
+
+    /** Prints tasks whose descriptions contain the supplied keyword. */
+    private static void printTasksMatchingKeyword(String keyword, List<Task> tasks, Ui ui) {
+        boolean foundTask = false;
+        ui.showMatchingTasksHeading();
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            if (task.hasKeyword(keyword)) {
+                ui.showNumberedTask(i + 1, task);
+                foundTask = true;
+            }
+        }
+        if (!foundTask) {
+            ui.showNoMatchingTasks();
+        }
     }
 
     /** Prints deadlines and events that occur on a user-specified calendar date. */
