@@ -4,9 +4,9 @@ package rei.task;
  * Represents a task with a description, completion status, and task type.
  */
 public class Task {
-    protected boolean isDone;
-    protected String description;
-    protected TaskType taskType;
+    private boolean isDone;
+    private final String description;
+    private final TaskType taskType;
 
     /**
      * Creates an incomplete todo task with the specified description.
@@ -43,7 +43,7 @@ public class Task {
      * @return Description entered by the user.
      */
     public String getDescription() {
-        return this.description;
+        return description;
     }
 
     /**
@@ -52,7 +52,7 @@ public class Task {
      * @return Task type display code.
      */
     public String getTaskType() {
-        return this.taskType.getDisplayCode();
+        return taskType.getDisplayCode();
     }
 
     /** Returns whether this task has been completed. */
@@ -62,17 +62,17 @@ public class Task {
 
     /** Marks this task as completed. */
     public void markAsDone() {
-        this.isDone = true;
+        isDone = true;
     }
 
     /** Marks this task as incomplete. */
     public void markAsUndone() {
-        this.isDone = false;
+        isDone = false;
     }
 
     /** {@inheritDoc} */
     @Override
-    public String toString(){
-        return this.description;
+    public String toString() {
+        return description;
     }
 }

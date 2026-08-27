@@ -36,8 +36,13 @@ After each code update, update `test/ui-test-plan.md` when the change affects th
 
 Maintain JUnit coverage for approximately the top 50% highest-value methods, prioritizing complex, core, and critical business logic. After each code change, update the relevant JUnit tests as needed to keep this coverage target and run them using Gradle.
 
+## Java coding standard
+
+For every Java code change or review, invoke and follow the project-local `seedu-java-coding-standard` skill in `.codex/skills/seedu-java-coding-standard/`. New and modified Java code must comply with the required basic and intermediate SE-EDU Java coding conventions.
+
 ## Git
 
+For every commit-message proposal, review, or commit, invoke and follow the project-local `seedu-git-standard` skill in `.codex/skills/seedu-git-standard/`.
 Use lightweight tags unless the user requests an annotated tag.
 When proposing or creating a commit message, include enough detail to explain the rationale for the change.
 Do not commit or push unless explicitly asked.

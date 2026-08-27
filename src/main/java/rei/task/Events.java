@@ -56,8 +56,8 @@ public class Events extends Task {
 
     /** {@inheritDoc} */
     @Override
-    public String toString(){
-        return description + " (from: " + start.format(DISPLAY_FORMAT)
+    public String toString() {
+        return getDescription() + " (from: " + start.format(DISPLAY_FORMAT)
                 + " to: " + end.format(DISPLAY_FORMAT) + ")";
     }
 }

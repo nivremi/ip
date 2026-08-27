@@ -1,13 +1,5 @@
 package rei;
 
-import rei.command.Command;
-import rei.exception.ReiException;
-import rei.storage.Storage;
-import rei.task.Deadlines;
-import rei.task.Events;
-import rei.task.Task;
-import rei.ui.Ui;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -18,6 +10,14 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import rei.command.Command;
+import rei.exception.ReiException;
+import rei.storage.Storage;
+import rei.task.Deadlines;
+import rei.task.Events;
+import rei.task.Task;
+import rei.ui.Ui;
 
 /** Coordinates Rei command processing, task management, storage, and UI. */
 public class Rei {
@@ -213,7 +213,8 @@ public class Rei {
             throws ReiException {
         Command command = isDone ? Command.MARK : Command.UNMARK;
         if (details.isEmpty()) {
-            throw new ReiException("Please provide a task number! Try: " + command.getKeyword() + " {task no.}");
+            throw new ReiException("Please provide a task number! Try: "
+                    + command.getKeyword() + " {task no.}");
         }
         if (!details.matches("\\d+")) {
             throw new ReiException("The task number must be a whole number! Try: "
@@ -302,8 +303,8 @@ public class Rei {
         try {
             int taskNumber = Integer.parseInt(details);
             if (taskNumber < 1) {
-                throw new ReiException("The task number must be at least 1. Try: " + command + " 1\n" +
-                        "Let's try that again!");
+                throw new ReiException("The task number must be at least 1. Try: " + command
+                        + " 1\nLet's try that again!");
             }
             if (taskNumber > taskCount) {
                 throw new ReiException("Task " + taskNumber + " does not exist.\nLet's try that again!");

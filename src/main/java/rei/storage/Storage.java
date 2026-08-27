@@ -1,9 +1,5 @@
 package rei.storage;
 
-import rei.task.Deadlines;
-import rei.task.Events;
-import rei.task.Task;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -12,6 +8,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+
+import rei.task.Deadlines;
+import rei.task.Events;
+import rei.task.Task;
 
 /** Saves and loads Rei tasks using a file relative to the project directory. */
 public class Storage {
@@ -81,21 +81,22 @@ public class Storage {
         }
 
         Task task = switch (fields[0]) {
-        case "T" -> {
-            requireLength(fields, 3);
-            yield new Task(decodeRequired(fields[2]));
-        }
-        case "D" -> {
-            requireLength(fields, 4);
-            yield new Deadlines(decodeRequired(fields[2]),
-                    LocalDateTime.parse(decodeRequired(fields[3])));
-        }
-        case "E" -> {
-            requireLength(fields, 5);
-            yield new Events(decodeRequired(fields[2]), LocalDateTime.parse(decodeRequired(fields[3])),
-                    LocalDateTime.parse(decodeRequired(fields[4])));
-        }
-        default -> throw new IllegalArgumentException("Unknown task type");
+            case "T" -> {
+                requireLength(fields, 3);
+                yield new Task(decodeRequired(fields[2]));
+            }
+            case "D" -> {
+                requireLength(fields, 4);
+                yield new Deadlines(decodeRequired(fields[2]),
+                        LocalDateTime.parse(decodeRequired(fields[3])));
+            }
+            case "E" -> {
+                requireLength(fields, 5);
+                yield new Events(decodeRequired(fields[2]),
+                        LocalDateTime.parse(decodeRequired(fields[3])),
+                        LocalDateTime.parse(decodeRequired(fields[4])));
+            }
+            default -> throw new IllegalArgumentException("Unknown task type");
         };
         if (fields[1].equals("1")) {
             task.markAsDone();
