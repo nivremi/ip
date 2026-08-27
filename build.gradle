@@ -24,8 +24,6 @@ dependencies {
 
 test {
     useJUnitPlatform()
-    // The existing regression checks are plain Java launchers until the A-JUnit increment.
-    failOnNoDiscoveredTests = false
 
     testLogging {
         events 'passed', 'skipped', 'failed'
