@@ -42,6 +42,7 @@ For every Java code change or review, invoke and follow the project-local `seedu
 
 ## Git
 
+For every commit-message proposal, review, or commit, invoke and follow the project-local `seedu-git-standard` skill in `.codex/skills/seedu-git-standard/`.
 Use lightweight tags unless the user requests an annotated tag.
 When proposing or creating a commit message, include enough detail to explain the rationale for the change.
 Do not commit or push unless explicitly asked.
