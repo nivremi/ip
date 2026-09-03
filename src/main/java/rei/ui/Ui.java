@@ -42,79 +42,83 @@ public class Ui {
                 + "██╔══██╗██╔══╝  ██║\n"
                 + "██║  ██║███████╗██║\n"
                 + "╚═╝  ╚═╝╚══════╝╚═╝";
-        System.out.println(banner);
+        printLines(banner);
         divider();
-        System.out.println(ZonedDateTime.now().format(CURRENT_DATE_FORMAT));
+        printLines(ZonedDateTime.now().format(CURRENT_DATE_FORMAT));
         divider();
-        System.out.println("Hey there, my name is Rei!");
-        System.out.println("How can I help you today?");
+        printLines(
+                "Hey there, my name is Rei!",
+                "How can I help you today?");
         divider();
     }
 
     /** Displays the divider between command responses. */
     public void divider() {
-        System.out.println(DIVIDER);
+        printLines(DIVIDER);
     }
 
     /** Displays an error followed by a divider. */
     public void showError(String message) {
-        System.out.println(message);
+        printLines(message);
         divider();
     }
 
     /** Displays a warning about invalid saved task records. */
     public void showSkippedTasksWarning(int skippedLines) {
-        System.out.println("Warning: I skipped " + skippedLines
+        printLines("Warning: I skipped " + skippedLines
                 + " invalid line(s) in the data file.");
         divider();
     }
 
     /** Displays a warning when saved tasks cannot be loaded. */
     public void showLoadingError() {
-        System.out.println("Warning: Oh man I could not read the data file. Gonna create an empty list.");
+        printLines("Warning: Oh man I could not read the data file. Gonna create an empty list.");
         divider();
     }
 
     /** Displays the farewell message. */
     public void showExit() {
-        System.out.println("Bye! Hope to see you again soon!");
+        printLines("Bye! Hope to see you again soon!");
         divider();
     }
 
     /** Displays confirmation that a task was added. */
     public void showTaskAdded(Task task, int taskCount) {
-        System.out.println("Okay, I've added: [" + task.getTaskType() + "]"
-                + "[" + task.getStatusIcon() + "] " + task);
-        System.out.println("You have a total of " + taskCount + " tasks in the list.");
+        printLines(
+                "Okay, I've added: [" + task.getTaskType() + "]"
+                        + "[" + task.getStatusIcon() + "] " + task,
+                "You have a total of " + taskCount + " tasks in the list.");
     }
 
     /** Displays confirmation that a task was deleted. */
     public void showTaskDeleted(Task task, int taskCount) {
-        System.out.println("Gotcha, I will remove this task from your list:");
-        System.out.println("  [" + task.getTaskType() + "]"
-                + "[" + task.getStatusIcon() + "] " + task);
-        System.out.println("Now you have " + taskCount + " tasks in the list.");
+        printLines(
+                "Gotcha, I will remove this task from your list:",
+                "  [" + task.getTaskType() + "]"
+                        + "[" + task.getStatusIcon() + "] " + task,
+                "Now you have " + taskCount + " tasks in the list.");
     }
 
     /** Displays confirmation that a task's completion status changed. */
     public void showTaskStatusChanged(Task task, boolean isDone) {
-        if (isDone) {
-            System.out.println("Alright! I have set it to done! Good Work!\n");
-        } else {
-            System.out.println("Got it! I have set it to not done!\n");
-        }
-        System.out.println("[" + task.getTaskType() + "]"
-                + "[" + task.getStatusIcon() + "] " + task.getDescription());
+        String statusMessage = isDone
+                ? "Alright! I have set it to done! Good Work!\n"
+                : "Got it! I have set it to not done!\n";
+        printLines(
+                statusMessage,
+                "[" + task.getTaskType() + "]"
+                        + "[" + task.getStatusIcon() + "] " + task.getDescription());
     }
 
     /** Displays all tasks in their current list order. */
     public void showTasks(List<Task> tasks) {
         if (tasks.isEmpty()) {
-            System.out.println("Yay! You have completed all your tasks");
+            printLines("Yay! You have completed all your tasks");
             return;
         }
-        System.out.println("Here are the tasks in your list:");
-        System.out.println("No. of tasks: " + tasks.size());
+        printLines(
+                "Here are the tasks in your list:",
+                "No. of tasks: " + tasks.size());
         for (int i = 0; i < tasks.size(); i++) {
             showNumberedTask(i + 1, tasks.get(i));
         }
@@ -122,28 +126,35 @@ public class Ui {
 
     /** Displays the heading for tasks occurring on a date. */
     public void showTasksOnDateHeading(LocalDate date) {
-        System.out.println("Tasks occurring on " + date.format(TASK_DATE_FORMAT) + ":");
+        printLines("Tasks occurring on " + date.format(TASK_DATE_FORMAT) + ":");
     }
 
     /** Displays one task with its position in the complete task list. */
     public void showNumberedTask(int taskNumber, Task task) {
-        System.out.println(taskNumber + ".[" + task.getTaskType() + "]"
+        printLines(taskNumber + ".[" + task.getTaskType() + "]"
                 + "[" + task.getStatusIcon() + "] " + task);
     }
 
     /** Displays that no deadline or event occurs on the requested date. */
     public void showNoTasksOnDate() {
-        System.out.println("No deadlines or events occur on this date.");
+        printLines("No deadlines or events occur on this date.");
     }
 
     /** Displays the heading for a keyword search result. */
     public void showMatchingTasksHeading() {
-        System.out.println("Here are the matching tasks in your list:");
+        printLines("Here are the matching tasks in your list:");
     }
 
     /** Displays that no task description contains the requested keyword. */
     public void showNoMatchingTasks() {
-        System.out.println("No matching tasks found.");
+        printLines("No matching tasks found.");
+    }
+
+    /** Prints each supplied line in order. */
+    private static void printLines(String... lines) {
+        for (String line : lines) {
+            System.out.println(line);
+        }
     }
 
     /** Releases the input scanner when Rei exits. */
