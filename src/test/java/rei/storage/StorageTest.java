@@ -89,7 +89,7 @@ public class StorageTest {
     }
 
     @Test
-    public void save_parentPathIsAFile_throwsIOException() throws IOException {
+    public void save_parentPathIsAFile_throwsIoException() throws IOException {
         Path regularFile = testDirectory.resolve("regular-file");
         Files.writeString(regularFile, "content", StandardCharsets.UTF_8);
         Storage storage = new Storage(regularFile.resolve("tasks.txt"));

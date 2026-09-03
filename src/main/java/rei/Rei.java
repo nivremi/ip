@@ -1,6 +1,9 @@
 package rei;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -42,6 +45,23 @@ public class Rei {
             DateTimeFormatter.ofPattern("d-M-uuuu", Locale.ENGLISH)
                     .withResolverStyle(ResolverStyle.STRICT));
 
+    private final Storage storage;
+    private final List<Task> tasks;
+    private final String startupMessage;
+
+    /** Creates Rei using the default data file. */
+    public Rei() {
+        this(DATA_FILE);
+    }
+
+    /** Creates Rei using a specific data file, primarily for testing or alternate interfaces. */
+    public Rei(Path dataFile) {
+        storage = new Storage(dataFile);
+        LoadState loadState = loadTasks(storage);
+        tasks = loadState.tasks();
+        startupMessage = loadState.warning();
+    }
+
     /**
      * Starts Rei's command-line interface and processes commands until the user exits.
      *
@@ -50,82 +70,106 @@ public class Rei {
     public static void main(String[] args) {
         Ui ui = new Ui();
         ui.showGreeting();
-        Storage storage = new Storage(DATA_FILE);
-        List<Task> tasks = loadTasks(storage, ui);
+        Rei rei = new Rei();
+        if (!rei.startupMessage.isEmpty()) {
+            ui.showResponse(rei.startupMessage);
+            ui.divider();
+        }
 
         while (ui.hasNextCommand()) {
-            String userInput = ui.readCommand();
-            if (userInput.isEmpty()) {
-                ui.showError("Please enter a command. Try: todo read book");
-                continue;
-            }
-
-            int firstSpace = userInput.indexOf(" ");
-            String commandText = firstSpace == -1
-                    ? userInput
-                    : userInput.substring(0, firstSpace);
-            String details = firstSpace == -1
-                    ? ""
-                    : userInput.substring(firstSpace).trim();
-            Command command = Command.fromText(commandText);
-            try {
-                if (command == null) {
-                    throw new ReiException("I'm sorry, I don't know what is '" + commandText
-                            + "'. Try todo, deadline, event, list, find, delete, mark, unmark, or bye.");
-                }
-                if (command == Command.BYE) {
-                    ensureNoDetails(command, details);
-                    ui.showExit();
-                    break;
-                }
-                if (command == Command.LIST) {
-                    ensureNoDetails(command, details);
-                    ui.showTasks(tasks);
-                    ui.divider();
-                    continue;
-                }
-                if (command == Command.FIND) {
-                    printFoundTasks(details, tasks, ui);
-                    ui.divider();
-                    continue;
-                }
-                if (command == Command.DELETE) {
-                    Task deletedTask = deleteTask(details, tasks);
-                    saveTasks(storage, tasks);
-                    ui.showTaskDeleted(deletedTask, tasks.size());
-                    ui.divider();
-                    continue;
-                }
-
-                Task newTask = processCommand(command, details, tasks, ui);
-                if (newTask != null) {
-                    tasks.add(newTask);
-                    saveTasks(storage, tasks);
-                    ui.showTaskAdded(newTask, tasks.size());
-                } else if (command == Command.MARK || command == Command.UNMARK) {
-                    saveTasks(storage, tasks);
-                }
-            } catch (ReiException exception) {
-                ui.showError(exception.getMessage());
-                continue;
-            }
+            CommandResult result = rei.executeCommand(ui.readCommand(), ui);
             ui.divider();
+            if (result.shouldExit()) {
+                break;
+            }
         }
         ui.close();
     }
 
+    /** Returns any warning generated while loading saved tasks. */
+    public String getStartupMessage() {
+        return startupMessage;
+    }
+
+    /** Processes one command and returns its displayable response for a non-console interface. */
+    public CommandResult getResponse(String input) {
+        ByteArrayOutputStream outputBuffer = new ByteArrayOutputStream();
+        try (PrintStream output = new PrintStream(outputBuffer, true, StandardCharsets.UTF_8)) {
+            Ui responseUi = Ui.forOutput(output);
+            CommandResult result = executeCommand(input.trim(), responseUi);
+            return new CommandResult(outputBuffer.toString(StandardCharsets.UTF_8).stripTrailing(),
+                    result.shouldExit());
+        }
+    }
+
     /** Loads saved tasks while keeping startup usable if the file cannot be read. */
-    private static List<Task> loadTasks(Storage storage, Ui ui) {
+    private static LoadState loadTasks(Storage storage) {
         try {
             Storage.LoadResult result = storage.load();
             if (result.skippedLines() > 0) {
-                ui.showSkippedTasksWarning(result.skippedLines());
+                return new LoadState(result.tasks(), "Warning: I skipped " + result.skippedLines()
+                        + " invalid line(s) in the data file.");
             }
-            return result.tasks();
+            return new LoadState(result.tasks(), "");
         } catch (IOException exception) {
-            ui.showLoadingError();
-            return new ArrayList<>();
+            return new LoadState(new ArrayList<>(),
+                    "Warning: Oh man I could not read the data file. Gonna create an empty list.");
         }
+    }
+
+    /** Processes one command through a supplied renderer. */
+    private CommandResult executeCommand(String userInput, Ui ui) {
+        if (userInput.isEmpty()) {
+            ui.showError("Please enter a command. Try: todo read book");
+            return new CommandResult("", false);
+        }
+
+        int firstSpace = userInput.indexOf(" ");
+        String commandText = firstSpace == -1
+                ? userInput
+                : userInput.substring(0, firstSpace);
+        String details = firstSpace == -1
+                ? ""
+                : userInput.substring(firstSpace).trim();
+        Command command = Command.fromText(commandText);
+        try {
+            if (command == null) {
+                throw new ReiException("I'm sorry, I don't know what is '" + commandText
+                        + "'. Try todo, deadline, event, list, find, delete, mark, unmark, or bye.");
+            }
+            if (command == Command.BYE) {
+                ensureNoDetails(command, details);
+                ui.showExit();
+                return new CommandResult("", true);
+            }
+            if (command == Command.LIST) {
+                ensureNoDetails(command, details);
+                ui.showTasks(tasks);
+                return new CommandResult("", false);
+            }
+            if (command == Command.FIND) {
+                printFoundTasks(details, tasks, ui);
+                return new CommandResult("", false);
+            }
+            if (command == Command.DELETE) {
+                Task deletedTask = deleteTask(details, tasks);
+                saveTasks(storage, tasks);
+                ui.showTaskDeleted(deletedTask, tasks.size());
+                return new CommandResult("", false);
+            }
+
+            Task newTask = processTaskCommand(command, details, tasks, ui);
+            if (newTask != null) {
+                tasks.add(newTask);
+                saveTasks(storage, tasks);
+                ui.showTaskAdded(newTask, tasks.size());
+            } else if (command == Command.MARK || command == Command.UNMARK) {
+                saveTasks(storage, tasks);
+            }
+        } catch (ReiException exception) {
+            ui.showError(exception.getMessage());
+        }
+        return new CommandResult("", false);
     }
 
     /** Saves tasks immediately after a successful list-changing command. */
@@ -138,21 +182,21 @@ public class Rei {
     }
 
     /** Processes a task-creating or task-status command entered by the user. */
-    private static Task processCommand(Command command, String details, List<Task> tasks, Ui ui)
+    private static Task processTaskCommand(Command command, String details, List<Task> tasks, Ui ui)
             throws ReiException {
         return switch (command) {
-        case TODO -> createTodo(details);
-        case DEADLINE -> createDeadline(details);
-        case EVENT -> createEvent(details);
-        case MARK -> {
-            updateTaskStatus(details, tasks, true, ui);
-            yield null;
-        }
-        case UNMARK -> {
-            updateTaskStatus(details, tasks, false, ui);
-            yield null;
-        }
-        case LIST, FIND, DELETE, BYE -> throw new IllegalStateException("Command already handled: " + command);
+            case TODO -> createTodo(details);
+            case DEADLINE -> createDeadline(details);
+            case EVENT -> createEvent(details);
+            case MARK -> {
+                updateTaskStatus(details, tasks, true, ui);
+                yield null;
+            }
+            case UNMARK -> {
+                updateTaskStatus(details, tasks, false, ui);
+                yield null;
+            }
+            case LIST, FIND, DELETE, BYE -> throw new IllegalStateException("Command already handled: " + command);
         };
     }
 
@@ -347,5 +391,13 @@ public class Rei {
         } catch (NumberFormatException exception) {
             throw new ReiException("Try a number from 1 to " + taskCount + "!");
         }
+    }
+
+    /** Contains a command's response text and whether the application should close. */
+    public record CommandResult(String response, boolean shouldExit) {
+    }
+
+    /** Contains loaded tasks and an optional startup warning. */
+    private record LoadState(List<Task> tasks, String warning) {
     }
 }
