@@ -141,18 +141,18 @@ public class Rei {
     private static Task processCommand(Command command, String details, List<Task> tasks, Ui ui)
             throws ReiException {
         return switch (command) {
-        case TODO -> createTodo(details);
-        case DEADLINE -> createDeadline(details);
-        case EVENT -> createEvent(details);
-        case MARK -> {
-            updateTaskStatus(details, tasks, true, ui);
-            yield null;
-        }
-        case UNMARK -> {
-            updateTaskStatus(details, tasks, false, ui);
-            yield null;
-        }
-        case LIST, FIND, DELETE, BYE -> throw new IllegalStateException("Command already handled: " + command);
+            case TODO -> createTodo(details);
+            case DEADLINE -> createDeadline(details);
+            case EVENT -> createEvent(details);
+            case MARK -> {
+                updateTaskStatus(details, tasks, true, ui);
+                yield null;
+            }
+            case UNMARK -> {
+                updateTaskStatus(details, tasks, false, ui);
+                yield null;
+            }
+            case LIST, FIND, DELETE, BYE -> throw new IllegalStateException("Command already handled: " + command);
         };
     }
 
