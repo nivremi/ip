@@ -64,6 +64,36 @@ public class ReiTest {
     }
 
     @Test
+    public void getResponse_markUnmarkAndDeleteBoundaryTasks_updatesCorrectTasks() {
+        Rei rei = new Rei(testDirectory.resolve("tasks.txt"));
+        rei.getResponse("  todo alpha  ");
+        rei.getResponse("todo beta");
+
+        rei.getResponse("mark 1");
+        rei.getResponse("mark 2");
+        rei.getResponse("unmark 1");
+        String tasks = rei.getResponse("list").response();
+        assertTrue(tasks.contains("1.[T][ ] alpha"));
+        assertTrue(tasks.contains("2.[T][X] beta"));
+
+        rei.getResponse("delete 2");
+        assertFalse(rei.getResponse("list").response().contains("beta"));
+        rei.getResponse("delete 1");
+        assertFalse(rei.getResponse("list").response().contains("alpha"));
+    }
+
+    @Test
+    public void getResponse_outOfBoundsTaskNumbers_returnsErrors() {
+        Rei rei = new Rei(testDirectory.resolve("tasks.txt"));
+        rei.getResponse("todo alpha");
+
+        assertTrue(rei.getResponse("mark 0").response().contains("at least 1"));
+        assertTrue(rei.getResponse("unmark 2").response().contains("does not exist"));
+        assertTrue(rei.getResponse("delete 2").response().contains("does not exist"));
+        assertTrue(rei.getResponse("list").response().contains("1.[T][ ] alpha"));
+    }
+
+    @Test
     public void getResponse_invalidCommand_preservesExistingTasks() {
         Rei rei = new Rei(testDirectory.resolve("tasks.txt"));
         rei.getResponse("todo alpha");
