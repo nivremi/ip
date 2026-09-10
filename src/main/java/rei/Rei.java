@@ -13,6 +13,7 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.IntStream;
 
 import rei.command.Command;
 import rei.exception.ReiException;
@@ -309,18 +310,17 @@ public class Rei {
 
     /** Prints tasks whose descriptions contain the supplied keyword. */
     private static void printTasksMatchingKeyword(String keyword, List<Task> tasks, Ui ui) {
-        boolean foundTask = false;
+        // Keep original indexes so users can act on a match with mark or delete.
+        List<Integer> matchingIndexes = IntStream.range(0, tasks.size())
+                .filter(index -> tasks.get(index).hasKeyword(keyword))
+                .boxed()
+                .toList();
         ui.showMatchingTasksHeading();
-        for (int i = 0; i < tasks.size(); i++) {
-            Task task = tasks.get(i);
-            if (task.hasKeyword(keyword)) {
-                ui.showNumberedTask(i + 1, task);
-                foundTask = true;
-            }
-        }
-        if (!foundTask) {
+        if (matchingIndexes.isEmpty()) {
             ui.showNoMatchingTasks();
+            return;
         }
+        matchingIndexes.forEach(index -> ui.showNumberedTask(index + 1, tasks.get(index)));
     }
 
     /** Prints deadlines and events that occur on a user-specified calendar date. */
