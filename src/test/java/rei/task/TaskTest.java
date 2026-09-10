@@ -2,9 +2,11 @@ package rei.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -49,5 +51,20 @@ public class TaskTest {
         assertTrue(task.hasKeyword("turn lib"));
         assertFalse(task.hasKeyword("report"));
         assertFalse(task.hasKeyword("2026"));
+    }
+
+    @Test
+    public void addTag_validAndDuplicateTags_normalizesAndDisplaysTags() {
+        Task task = new Task("read book");
+
+        assertTrue(task.addTag("#School"));
+        assertTrue(task.addTag("#week_5"));
+        assertFalse(task.addTag("#SCHOOL"));
+
+        assertEquals(List.of("#school", "#week_5"), task.getTags());
+        assertEquals("read book #school #week_5", task.toString());
+        assertTrue(task.hasKeyword("#SCHOOL"));
+        assertFalse(task.hasKeyword("#week"));
+        assertThrows(IllegalArgumentException.class, () -> task.addTag("school"));
     }
 }

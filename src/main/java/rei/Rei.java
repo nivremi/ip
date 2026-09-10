@@ -138,7 +138,7 @@ public class Rei {
         try {
             if (command == null) {
                 throw new ReiException("I'm sorry, I don't know what is '" + commandText
-                        + "'. Try todo, deadline, event, list, find, delete, mark, unmark, or bye.");
+                        + "'. Try todo, deadline, event, list, find, delete, mark, unmark, tag, or bye.");
             }
             return dispatchCommand(command, details, ui);
         } catch (ReiException exception) {
@@ -160,6 +160,10 @@ public class Rei {
                 ui.showTasks(tasks);
             }
             case FIND -> printFoundTasks(details, tasks, ui);
+            case TAG -> {
+                tagTask(details, tasks, ui);
+                saveTasks(storage, tasks);
+            }
             case DELETE -> {
                 Task deletedTask = deleteTask(details, tasks);
                 saveTasks(storage, tasks);
@@ -210,8 +214,29 @@ public class Rei {
                 updateTaskStatus(details, tasks, false, ui);
                 yield null;
             }
-            case LIST, FIND, DELETE, BYE -> throw new IllegalStateException("Command already handled: " + command);
+            case LIST, FIND, DELETE, TAG, BYE -> throw new IllegalStateException("Command already handled: " + command);
         };
+    }
+
+    /** Adds a tag to one existing task and displays the updated task. */
+    private static void tagTask(String details, List<Task> tasks, Ui ui) throws ReiException {
+        String[] parts = details.split("\\s+", 2);
+        if (parts.length != 2 || parts[0].isEmpty() || parts[1].isEmpty()) {
+            throw new ReiException("Please provide a task number and tag. Try: tag 1 #school");
+        }
+        int taskIndex = getTaskIndex(parts[0], tasks.size(), Command.TAG.getKeyword());
+        Task task = tasks.get(taskIndex);
+        try {
+            if (!task.addTag(parts[1])) {
+                throw new ReiException("Task " + (taskIndex + 1) + " already has tag "
+                        + parts[1].toLowerCase(Locale.ENGLISH) + ".");
+            }
+        } catch (IllegalArgumentException exception) {
+            throw new ReiException("A tag must start with # and contain only letters, numbers, _ or -. "
+                    + "Try: tag 1 #school");
+        }
+        String normalizedTag = task.getTags().get(task.getTags().size() - 1);
+        ui.showTaskTagged(task, taskIndex + 1, normalizedTag);
     }
 
     /** Creates a todo task after validating that a description was provided. */

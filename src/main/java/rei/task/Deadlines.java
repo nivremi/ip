@@ -40,6 +40,6 @@ public class Deadlines extends Task {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return getDescription() + " (by: " + by.format(DISPLAY_FORMAT) + ")";
+        return super.toString() + " (by: " + by.format(DISPLAY_FORMAT) + ")";
     }
 }

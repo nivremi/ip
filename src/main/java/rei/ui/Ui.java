@@ -121,7 +121,14 @@ public class Ui {
             output.println("Got it! I have set it to not done!\n");
         }
         output.println("[" + task.getTaskType() + "]"
-                + "[" + task.getStatusIcon() + "] " + task.getDescription());
+                + "[" + task.getStatusIcon() + "] " + task);
+    }
+
+    /** Displays confirmation that a tag was added to a task. */
+    public void showTaskTagged(Task task, int taskNumber, String tag) {
+        output.println("Added " + tag + " to task " + taskNumber + ":");
+        output.println("[" + task.getTaskType() + "]"
+                + "[" + task.getStatusIcon() + "] " + task);
     }
 
     /** Displays all tasks in their current list order. */

@@ -70,6 +70,9 @@ public class Storage {
             fields.add(encode(event.getStart().toString()));
             fields.add(encode(event.getEnd().toString()));
         }
+        if (!task.getTags().isEmpty()) {
+            fields.add(encode(String.join(",", task.getTags())));
+        }
         return String.join(FIELD_SEPARATOR, fields);
     }
 
@@ -82,22 +85,31 @@ public class Storage {
 
         Task task = switch (fields[0]) {
             case "T" -> {
-                requireLength(fields, 3);
+                requireLength(fields, 3, 4);
                 yield new Task(decodeRequired(fields[2]));
             }
             case "D" -> {
-                requireLength(fields, 4);
+                requireLength(fields, 4, 5);
                 yield new Deadlines(decodeRequired(fields[2]),
                         LocalDateTime.parse(decodeRequired(fields[3])));
             }
             case "E" -> {
-                requireLength(fields, 5);
+                requireLength(fields, 5, 6);
                 yield new Events(decodeRequired(fields[2]),
                         LocalDateTime.parse(decodeRequired(fields[3])),
                         LocalDateTime.parse(decodeRequired(fields[4])));
             }
             default -> throw new IllegalArgumentException("Unknown task type");
         };
+        int legacyLength = switch (fields[0]) {
+            case "T" -> 3;
+            case "D" -> 4;
+            case "E" -> 5;
+            default -> throw new IllegalArgumentException("Unknown task type");
+        };
+        if (fields.length == legacyLength + 1) {
+            loadTags(task, decode(fields[legacyLength]));
+        }
         if (fields[1].equals("1")) {
             task.markAsDone();
         }
@@ -105,9 +117,21 @@ public class Storage {
     }
 
     /** Ensures a record has exactly the number of fields required by its task type. */
-    private void requireLength(String[] fields, int expectedLength) {
-        if (fields.length != expectedLength) {
+    private void requireLength(String[] fields, int legacyLength, int taggedLength) {
+        if (fields.length != legacyLength && fields.length != taggedLength) {
             throw new IllegalArgumentException("Wrong number of fields");
+        }
+    }
+
+    /** Restores comma-separated tags and rejects invalid or duplicate entries. */
+    private void loadTags(Task task, String tagText) {
+        if (tagText.isEmpty()) {
+            return;
+        }
+        for (String tag : tagText.split(",", -1)) {
+            if (!task.addTag(tag)) {
+                throw new IllegalArgumentException("Duplicate task tag");
+            }
         }
     }
 

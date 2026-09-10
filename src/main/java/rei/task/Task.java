@@ -1,14 +1,19 @@
 package rei.task;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
  * Represents a task with a description, completion status, and task type.
  */
 public class Task {
+    private static final String TAG_PATTERN = "#[A-Za-z0-9][A-Za-z0-9_-]*";
+
     private boolean isDone;
     private final String description;
     private final TaskType taskType;
+    private final List<String> tags;
 
     /**
      * Creates an incomplete todo task with the specified description.
@@ -29,6 +34,7 @@ public class Task {
         this.description = description;
         this.isDone = false;
         this.taskType = taskType;
+        this.tags = new ArrayList<>();
     }
 
     /**
@@ -64,8 +70,40 @@ public class Task {
 
     /** Returns whether the description contains the keyword, ignoring letter case. */
     public boolean hasKeyword(String keyword) {
+        if (keyword.startsWith("#")) {
+            return hasTag(keyword);
+        }
         return description.toLowerCase(Locale.ENGLISH)
                 .contains(keyword.toLowerCase(Locale.ENGLISH));
+    }
+
+    /**
+     * Adds a valid tag unless the task already has it.
+     *
+     * @param tag Tag beginning with {@code #}.
+     * @return {@code true} when the tag was added, or {@code false} for a duplicate.
+     * @throws IllegalArgumentException If the tag has an invalid format.
+     */
+    public boolean addTag(String tag) {
+        if (!tag.matches(TAG_PATTERN)) {
+            throw new IllegalArgumentException("Invalid tag format");
+        }
+        String normalizedTag = tag.toLowerCase(Locale.ENGLISH);
+        if (tags.contains(normalizedTag)) {
+            return false;
+        }
+        tags.add(normalizedTag);
+        return true;
+    }
+
+    /** Returns whether this task has the specified tag, ignoring letter case. */
+    public boolean hasTag(String tag) {
+        return tags.contains(tag.toLowerCase(Locale.ENGLISH));
+    }
+
+    /** Returns this task's tags in the order they were added. */
+    public List<String> getTags() {
+        return List.copyOf(tags);
     }
 
     /** Marks this task as completed. */
@@ -81,6 +119,9 @@ public class Task {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return description;
+        if (tags.isEmpty()) {
+            return description;
+        }
+        return description + " " + String.join(" ", tags);
     }
 }

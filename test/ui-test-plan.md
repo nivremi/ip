@@ -42,6 +42,56 @@ Bye! Hope to see you again soon!
 ------------------------------------------------------------
 ```
 
+## Test case: Tag and find tasks
+
+**Aim:** Verify that tags are normalized, displayed, searchable, persisted, and validated without duplicating tags.
+
+**Input:**
+
+```text
+todo prepare slides
+todo buy snacks
+tag 1 #School
+tag 2 #personal
+tag 1 #SCHOOL
+tag 2 personal
+list
+find #school
+bye
+```
+
+**Expected output:**
+
+```text
+{{ANY_PREFIX}}
+Okay, I've added: [T][ ] prepare slides
+You have a total of 1 tasks in the list.
+------------------------------------------------------------
+Okay, I've added: [T][ ] buy snacks
+You have a total of 2 tasks in the list.
+------------------------------------------------------------
+Added #school to task 1:
+[T][ ] prepare slides #school
+------------------------------------------------------------
+Added #personal to task 2:
+[T][ ] buy snacks #personal
+------------------------------------------------------------
+Task 1 already has tag #school.
+------------------------------------------------------------
+A tag must start with # and contain only letters, numbers, _ or -. Try: tag 1 #school
+------------------------------------------------------------
+Here are the tasks in your list:
+No. of tasks: 2
+1.[T][ ] prepare slides #school
+2.[T][ ] buy snacks #personal
+------------------------------------------------------------
+Here are the matching tasks in your list:
+1.[T][ ] prepare slides #school
+------------------------------------------------------------
+Bye! Hope to see you again soon!
+------------------------------------------------------------
+```
+
 ## Test case: Preserve state for empty-list, repeated-status, and overflow operations
 
 **Aim:** Verify that invalid operations leave an empty list unchanged, repeated status commands do not duplicate tasks, deleting a completed task works, and an oversized task number does not crash or mutate the list.
@@ -144,7 +194,7 @@ bye
 Okay, I've added: [T][ ] spaced task
 You have a total of 1 tasks in the list.
 ------------------------------------------------------------
-I'm sorry, I don't know what is 'TODO'. Try todo, deadline, event, list, find, delete, mark, unmark, or bye.
+I'm sorry, I don't know what is 'TODO'. Try todo, deadline, event, list, find, delete, mark, unmark, tag, or bye.
 ------------------------------------------------------------
 Here are the tasks in your list:
 No. of tasks: 1
@@ -589,7 +639,7 @@ The list command does not take any extra text. Try: list
 ------------------------------------------------------------
 The bye command does not take any extra text. Try: bye
 ------------------------------------------------------------
-I'm sorry, I don't know what is 'blah'. Try todo, deadline, event, list, find, delete, mark, unmark, or bye.
+I'm sorry, I don't know what is 'blah'. Try todo, deadline, event, list, find, delete, mark, unmark, tag, or bye.
 ------------------------------------------------------------
 Bye! Hope to see you again soon!
 ------------------------------------------------------------
