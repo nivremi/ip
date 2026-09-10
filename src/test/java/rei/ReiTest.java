@@ -36,6 +36,33 @@ public class ReiTest {
     }
 
     @Test
+    public void getResponse_findKeyword_preservesOriginalIndexesAndOrder() {
+        Rei rei = new Rei(testDirectory.resolve("tasks.txt"));
+        rei.getResponse("todo unrelated");
+        rei.getResponse("todo Read book");
+        rei.getResponse("todo buy milk");
+        rei.getResponse("todo book tickets");
+
+        String matches = rei.getResponse("find BOOK").response();
+
+        assertTrue(matches.contains("2.[T][ ] Read book"));
+        assertTrue(matches.contains("4.[T][ ] book tickets"));
+        assertTrue(matches.indexOf("Read book") < matches.indexOf("book tickets"));
+        assertFalse(matches.contains("unrelated"));
+        assertFalse(matches.contains("buy milk"));
+    }
+
+    @Test
+    public void getResponse_findMissingKeyword_reportsNoMatches() {
+        Rei rei = new Rei(testDirectory.resolve("tasks.txt"));
+        String emptyResult = rei.getResponse("find book").response();
+        rei.getResponse("todo buy milk");
+
+        assertTrue(emptyResult.contains("No matching tasks"));
+        assertTrue(rei.getResponse("find book").response().contains("No matching tasks"));
+    }
+
+    @Test
     public void getResponse_invalidCommand_preservesExistingTasks() {
         Rei rei = new Rei(testDirectory.resolve("tasks.txt"));
         rei.getResponse("todo alpha");
