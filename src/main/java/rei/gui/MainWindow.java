@@ -30,6 +30,9 @@ public class MainWindow extends AnchorPane {
     /** Configures automatic scrolling after the FXML controls have been injected. */
     @FXML
     public void initialize() {
+        // Missing controls indicate an FXML wiring error, not invalid user input.
+        assert scrollPane != null && dialogContainer != null && userInput != null && sendButton != null
+                : "FXML must inject all main window controls";
         dialogContainer.heightProperty().addListener(observable -> scrollPane.setVvalue(1.0));
     }
 
@@ -46,6 +49,8 @@ public class MainWindow extends AnchorPane {
     /** Sends the typed command, displays Rei's reply, and handles the {@code bye} command. */
     @FXML
     private void handleUserInput() {
+        // MainApp must supply the backend before users can send commands.
+        assert rei != null : "Rei must be injected before handling user input";
         String input = userInput.getText().trim();
         if (input.isEmpty()) {
             return;

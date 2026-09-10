@@ -120,6 +120,8 @@ public class Rei {
 
     /** Processes one command through a supplied renderer. */
     private CommandResult executeCommand(String userInput, Ui ui) {
+        // Both interfaces must trim input before handing it to the shared parser.
+        assert userInput != null && userInput.equals(userInput.trim()) : "Command input must be trimmed";
         if (userInput.isEmpty()) {
             ui.showError("Please enter a command. Try: todo read book");
             return new CommandResult("", false);
@@ -185,6 +187,9 @@ public class Rei {
     /** Processes a task-creating or task-status command entered by the user. */
     private static Task processTaskCommand(Command command, String details, List<Task> tasks, Ui ui)
             throws ReiException {
+        // The dispatcher must handle all non-task commands before reaching this helper.
+        assert command == Command.TODO || command == Command.DEADLINE || command == Command.EVENT
+                || command == Command.MARK || command == Command.UNMARK : "Expected a task command";
         return switch (command) {
             case TODO -> createTodo(details);
             case DEADLINE -> createDeadline(details);
@@ -272,6 +277,8 @@ public class Rei {
         } else {
             task.markAsUndone();
         }
+        // The displayed confirmation must agree with the state that will be saved.
+        assert task.isDone() == isDone : "Task status must match the requested state";
         ui.showTaskStatusChanged(task, isDone);
     }
 
@@ -387,7 +394,10 @@ public class Rei {
             if (taskNumber > taskCount) {
                 throw new ReiException("Task " + taskNumber + " does not exist.\nLet's try that again!");
             }
-            return taskNumber - 1;
+            int taskIndex = taskNumber - 1;
+            // Callers rely on validation above to produce a safe zero-based list index.
+            assert taskIndex >= 0 && taskIndex < taskCount : "Validated task index must be in bounds";
+            return taskIndex;
         } catch (NumberFormatException exception) {
             throw new ReiException("Try a number from 1 to " + taskCount + "!");
         }
