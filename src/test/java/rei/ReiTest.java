@@ -63,6 +63,24 @@ public class ReiTest {
     }
 
     @Test
+    public void getResponse_tagAndFind_persistsNormalizedTagAndRejectsDuplicates() {
+        Path dataFile = testDirectory.resolve("tasks.txt");
+        Rei rei = new Rei(dataFile);
+        rei.getResponse("todo prepare slides");
+
+        String tagResponse = rei.getResponse("tag 1 #School").response();
+        String duplicateResponse = rei.getResponse("tag 1 #SCHOOL").response();
+        String invalidResponse = rei.getResponse("tag 1 school").response();
+        String savedMatches = new Rei(dataFile).getResponse("find #school").response();
+
+        assertTrue(tagResponse.contains("Added #school to task 1"));
+        assertTrue(tagResponse.contains("prepare slides #school"));
+        assertTrue(duplicateResponse.contains("already has tag #school"));
+        assertTrue(invalidResponse.contains("A tag must start with #"));
+        assertTrue(savedMatches.contains("1.[T][ ] prepare slides #school"));
+    }
+
+    @Test
     public void getResponse_taskCommands_persistChangesAcrossInstances() {
         Path dataFile = testDirectory.resolve("tasks.txt");
         Rei rei = new Rei(dataFile);

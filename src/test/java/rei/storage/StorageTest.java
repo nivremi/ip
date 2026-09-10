@@ -37,11 +37,13 @@ public class StorageTest {
         Storage storage = new Storage(testDirectory.resolve("nested").resolve("tasks.txt"));
         Task todo = new Task("read | revise 雷");
         todo.markAsDone();
-        List<Task> original = List.of(
-                todo,
-                new Deadlines("submit report", LocalDateTime.of(2026, 8, 28, 18, 0)),
-                new Events("project meeting", LocalDateTime.of(2026, 8, 29, 10, 0),
-                        LocalDateTime.of(2026, 8, 29, 12, 0)));
+        todo.addTag("#school");
+        Deadlines deadline = new Deadlines("submit report", LocalDateTime.of(2026, 8, 28, 18, 0));
+        deadline.addTag("#urgent");
+        Events event = new Events("project meeting", LocalDateTime.of(2026, 8, 29, 10, 0),
+                LocalDateTime.of(2026, 8, 29, 12, 0));
+        event.addTag("#team");
+        List<Task> original = List.of(todo, deadline, event);
 
         storage.save(original);
         Storage.LoadResult result = storage.load();
@@ -53,6 +55,7 @@ public class StorageTest {
             Task actual = result.tasks().get(i);
             assertEquals(expected.getTaskType(), actual.getTaskType());
             assertEquals(expected.getDescription(), actual.getDescription());
+            assertEquals(expected.getTags(), actual.getTags());
             assertEquals(expected.toString(), actual.toString());
             assertEquals(expected.isDone(), actual.isDone());
         }
@@ -73,7 +76,7 @@ public class StorageTest {
         Path dataFile = testDirectory.resolve("corrupted.txt");
         Storage storage = new Storage(dataFile);
         storage.save(List.of(new Task("valid task")));
-        String validRecord = Files.readString(dataFile, StandardCharsets.UTF_8).trim();
+        String validRecord = Files.readAllLines(dataFile, StandardCharsets.UTF_8).get(0);
         Files.write(dataFile, List.of(
                 validRecord,
                 "not a task record",
@@ -86,6 +89,19 @@ public class StorageTest {
         assertEquals(1, result.tasks().size());
         assertEquals("valid task", result.tasks().get(0).getDescription());
         assertEquals(4, result.skippedLines());
+    }
+
+    @Test
+    public void load_legacyRecordWithoutTags_restoresTask() throws IOException {
+        Path dataFile = testDirectory.resolve("legacy.txt");
+        Files.writeString(dataFile, "T | 0 | bGVnYWN5IHRhc2s=", StandardCharsets.UTF_8);
+
+        Storage.LoadResult result = new Storage(dataFile).load();
+
+        assertEquals(1, result.tasks().size());
+        assertEquals("legacy task", result.tasks().get(0).getDescription());
+        assertEquals(List.of(), result.tasks().get(0).getTags());
+        assertEquals(0, result.skippedLines());
     }
 
     @Test

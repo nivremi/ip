@@ -35,4 +35,16 @@ transcript are uploaded as `test-reports`; successful runs also provide `rei-jar
   macOS/Linux. The executable fat JAR is created at
   `build/libs/rei.jar` and can be started using `java -jar build/libs/rei.jar`.
 
+## Tagging tasks
+
+Use `tag TASK_NUMBER #TAG` to organize an existing task. Tags start with `#`
+and can contain letters, numbers, `_`, or `-`. Rei stores tags in lowercase,
+shows them when listing tasks, and finds an exact tag with `find #TAG`.
+
+```text
+todo prepare slides
+tag 1 #School
+find #school
+```
+
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
