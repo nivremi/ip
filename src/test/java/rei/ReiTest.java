@@ -63,6 +63,34 @@ public class ReiTest {
     }
 
     @Test
+    public void getResponse_taskCommands_persistChangesAcrossInstances() {
+        Path dataFile = testDirectory.resolve("tasks.txt");
+        Rei rei = new Rei(dataFile);
+        rei.getResponse("todo alpha");
+        rei.getResponse("deadline beta /by 2026-09-10 1800");
+        rei.getResponse("event gamma /from 2026-09-10 1800 /to 2026-09-10 1900");
+        rei.getResponse("mark 1");
+        assertTrue(new Rei(dataFile).getResponse("list").response().contains("1.[T][X] alpha"));
+
+        rei.getResponse("unmark 1");
+        rei.getResponse("delete 2");
+        String savedTasks = new Rei(dataFile).getResponse("list").response();
+        assertTrue(savedTasks.contains("1.[T][ ] alpha"));
+        assertTrue(savedTasks.contains("2.[E][ ] gamma"));
+        assertFalse(savedTasks.contains("beta"));
+    }
+
+    @Test
+    public void getResponse_invalidByeDetails_doesNotRequestExit() {
+        Rei rei = new Rei(testDirectory.resolve("tasks.txt"));
+
+        Rei.CommandResult result = rei.getResponse("bye now");
+
+        assertFalse(result.shouldExit());
+        assertTrue(result.response().contains("does not take any extra text"));
+    }
+
+    @Test
     public void getResponse_markUnmarkAndDeleteBoundaryTasks_updatesCorrectTasks() {
         Rei rei = new Rei(testDirectory.resolve("tasks.txt"));
         rei.getResponse("  todo alpha  ");

@@ -140,39 +140,47 @@ public class Rei {
                 throw new ReiException("I'm sorry, I don't know what is '" + commandText
                         + "'. Try todo, deadline, event, list, find, delete, mark, unmark, or bye.");
             }
-            if (command == Command.BYE) {
-                ensureNoDetails(command, details);
-                ui.showExit();
-                return new CommandResult("", true);
-            }
-            if (command == Command.LIST) {
-                ensureNoDetails(command, details);
-                ui.showTasks(tasks);
-                return new CommandResult("", false);
-            }
-            if (command == Command.FIND) {
-                printFoundTasks(details, tasks, ui);
-                return new CommandResult("", false);
-            }
-            if (command == Command.DELETE) {
-                Task deletedTask = deleteTask(details, tasks);
-                saveTasks(storage, tasks);
-                ui.showTaskDeleted(deletedTask, tasks.size());
-                return new CommandResult("", false);
-            }
-
-            Task newTask = processTaskCommand(command, details, tasks, ui);
-            if (newTask != null) {
-                tasks.add(newTask);
-                saveTasks(storage, tasks);
-                ui.showTaskAdded(newTask, tasks.size());
-            } else if (command == Command.MARK || command == Command.UNMARK) {
-                saveTasks(storage, tasks);
-            }
+            return dispatchCommand(command, details, ui);
         } catch (ReiException exception) {
             ui.showError(exception.getMessage());
         }
         return new CommandResult("", false);
+    }
+
+    /** Routes a recognized command and reports whether it requests application exit. */
+    private CommandResult dispatchCommand(Command command, String details, Ui ui) throws ReiException {
+        switch (command) {
+            case BYE -> {
+                ensureNoDetails(command, details);
+                ui.showExit();
+                return new CommandResult("", true);
+            }
+            case LIST -> {
+                ensureNoDetails(command, details);
+                ui.showTasks(tasks);
+            }
+            case FIND -> printFoundTasks(details, tasks, ui);
+            case DELETE -> {
+                Task deletedTask = deleteTask(details, tasks);
+                saveTasks(storage, tasks);
+                ui.showTaskDeleted(deletedTask, tasks.size());
+            }
+            case TODO, DEADLINE, EVENT, MARK, UNMARK -> executeTaskCommand(command, details, ui);
+            default -> throw new IllegalStateException("Unhandled command: " + command);
+        }
+        return new CommandResult("", false);
+    }
+
+    /** Applies a task creation or status change and persists it before confirming additions. */
+    private void executeTaskCommand(Command command, String details, Ui ui) throws ReiException {
+        Task newTask = processTaskCommand(command, details, tasks, ui);
+        if (newTask != null) {
+            tasks.add(newTask);
+            saveTasks(storage, tasks);
+            ui.showTaskAdded(newTask, tasks.size());
+        } else if (command == Command.MARK || command == Command.UNMARK) {
+            saveTasks(storage, tasks);
+        }
     }
 
     /** Saves tasks immediately after a successful list-changing command. */
