@@ -17,6 +17,16 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    `Run Launcher.main()` to open the JavaFX interface. If the code editor is showing
    compile errors, try restarting the IDE.
 
+## Continuous integration
+
+GitHub Actions runs the Java CI workflow on every push and pull request.
+It uses Java 25 on Windows to build the JAR, run JUnit (including JavaFX tests),
+check Java coding conventions, and run the recorded CLI tests.
+Windows matches the project's tested JavaFX environment and CLI test classpath.
+
+Open the repository's **Actions** tab to inspect a run. Test reports and the CLI
+transcript are uploaded as `test-reports`; successful runs also provide `rei-jar`.
+
 ## Running Rei
 
 - Run the JavaFX interface with `.\gradlew.bat run` on Windows or `./gradlew run` on macOS/Linux.
